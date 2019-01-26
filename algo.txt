@@ -1,0 +1,6 @@
+The merge and split elements:
+* start - dwlt, uplt
+* end - dwrt, uprt
+* split - uplt, dwlt
+* merge - uprt, dwrt
+-- you could 
