@@ -3,6 +3,7 @@ beginning of project application.
 """
 import turtle
 import tkinter as tk
+import time
 
 '''
 global variables, used for events
@@ -27,37 +28,32 @@ def main():
     lays down the ground for the app
     and sets the corresponding handlers
     """
-    # setting the background color
-    turtle.bgcolor('black')
-    # getting the turtle
-
-    root = tk.Tk()
-    canvas = tk.Canvas(master = root, width = 500, height = 500)
+    # # setting the background color
+    # turtle.bgcolor('black')
+    # # getting the turtle
+    #
+    screen_width, screen_height = screen_dimensions()
+    window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
+    #
+    root = tk.Tk(screenName='turtle', baseName='turtle')
+    canvas = tk.Canvas(master=root, width=window_width, height=window_height)
     canvas.pack()
 
-    t = turtle.RawTurtle(canvas)
-
-    tad = turtle.RawTurtle(tk.Canvas())
+    tad = turtle.RawTurtle(canvas)
     tad.color('white', 'white')
     tad.speed(10)
     tad.shapesize(0.5, 0.5)
-    # getting the screen
-    window = tad.screen
-
-    # setting the window dimensions:
-    window.setup(width=0.618, height=0.8, startx=0, starty=0)
-    screen_width, screen_height = screen_dimensions()
-    window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
 
     # now center the window:
-    startx_centered = (screen_width - window_width) // 2
-    starty_centered = (screen_height - window_height) // 2
-
-    window.setup(width=0.618, height=0.8,
-                 startx=startx_centered, starty=starty_centered)
-
-    turtle.write('text', move=False, align='left', font=('Arial', 18, 'normal'))
-    # tad.color('lime', 'lime')
+    root.resizable(True, True)
+    # the first one must be -7 as to be leftmost on windows 10 :))
+    # let's center the window:
+    x_centered = int((screen_width - window_width) // 2)
+    y_centered = int((screen_height - window_height) // 2)
+    root.geometry('+{}+{}'.format(x_centered, y_centered))  # these correspond
+    # to xstart and ystart in turtle.screen.setup :D
+    canvas.config(bg='black')
+    tad.color('lime', 'lime')
 
     # using the turtle to first draw the 'buttons' :D
 
@@ -76,7 +72,7 @@ def main():
         tad.goto(tads_position)
 
     def line(A, B):
-        x0, y0, x1, y1 =  A[0], A[1], B[0], B[1]
+        x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
         tads_position = tad.position()
         tad.penup()
         tad.goto(x0, y0)
@@ -90,16 +86,8 @@ def main():
     line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2))
     tad.color('lime', 'lime')
 
-    # tad.penup()
-    # tad.setheading(270)
-    # tad.backward(window_height * 0.9 // 2)
-    # tad.right(90)
-    # tad.forward(window_width * 0.9 // 2)
-    # rectangle(0, 0, 10, 10)
-    # rectangle(100, 100, 110, 110)
-
-    turtle.listen()
-
+    # turtle.listen()  # this also opens the window :DDCC
+    # the 'buttons'
     start_button = ((-window_width * 0.9 // 2, window_height * 0.9 // 2 - 30),
                     (-window_width * 0.9 // 2 + 60, window_height * 0.9 // 2))
     reset_button = ((window_width * 0.9 // 2 - 60, window_height * 0.9 // 2 - 30),
@@ -108,10 +96,12 @@ def main():
     def draw_button(button, text):
         tads_position = tad.position()
         rectangle(button[0], button[1])
-        turtle.color('lime', 'lime')
-        turtle.penup()
-        turtle.goto(button[0])
-        turtle.write(text, align='left', font=('Arial', 18, 'normal'))
+        tad.penup()
+        tad.goto(button[0])
+        tad.right(90)
+        tad.forward(10)
+        tad.left(90)
+        tad.write(text, align='left', font=('Arial', 18, 'normal'))
         tad.goto(tads_position)
 
     draw_button(start_button, 'start')
@@ -147,12 +137,10 @@ def main():
         points.append((x, y))
         tad.screen.onclick(draw_to_point, btn=1)
 
-    tad.screen.onclick(first_point)
-
-    turtle.mainloop()
-
-    # x, y = 0, 0
-    # print(x, y)
+    # tad.screen.onclick(first_point)
+    #
+    # turtle.mainloop()
+    root.mainloop()
 
 
 if __name__ == '__main__':
