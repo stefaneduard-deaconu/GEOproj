@@ -2,7 +2,7 @@
 beginning of project application.
 """
 import turtle
-
+import tkinter as tk
 
 '''
 global variables, used for events
@@ -30,8 +30,14 @@ def main():
     # setting the background color
     turtle.bgcolor('black')
     # getting the turtle
-    print(turtle.getshapes())
-    tad = turtle.Turtle(shape='triangle')
+
+    root = tk.Tk()
+    canvas = tk.Canvas(master = root, width = 500, height = 500)
+    canvas.pack()
+
+    t = turtle.RawTurtle(canvas)
+
+    tad = turtle.RawTurtle(tk.Canvas())
     tad.color('white', 'white')
     tad.speed(10)
     tad.shapesize(0.5, 0.5)
@@ -59,7 +65,7 @@ def main():
         x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
         tads_position = tad.position()
         # we could check if the pen is down TODO
-        if x0 < x1 or y0 < y1:  # sort them
+        if x0 > x1 or y0 > y1:  # sort them
             x0, y0, x1, y1 = x1, y1, x0, y0
         tad.penup()
         tad.goto(x0, y0)
