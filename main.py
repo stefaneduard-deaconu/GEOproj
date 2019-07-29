@@ -28,9 +28,9 @@ def main():
     and sets the corresponding handlers
     """
     # getting the turtle
-    t = turtle.Turtle()
+    tad = turtle.Turtle()
     # getting the screen
-    window = t.screen
+    window = tad.screen
 
     # setting the window dimensions:
     window.setup(width=0.618, height=0.8, startx=0, starty=0)
@@ -50,18 +50,17 @@ def main():
 
     def click_event(x_coord=None, y_coord=None):
         print('clicking...')
-        turtle.turtles()[0].forward(50)
+        tad.forward(50)
         if taking_input:
             points.append((x_coord, y_coord))
         else:
             pass
-    t.screen.onclick(click_event)
+    tad.screen.onclick(click_event)
 
     def space_event():
-        print('space pressing...')
-        turtle.turtles()[0].showturtle()
-        t.screen.ontimer(turtle.turtles()[0].hideturtle, 500)
-        print('enter was pressed :D')
+        print('space was pressed...')
+        tad.showturtle()
+        tad.screen.ontimer(tad.hideturtle, 500)
     turtle.onkey(space_event, 'space')
 
     turtle.mainloop()
