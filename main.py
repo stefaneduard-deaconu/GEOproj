@@ -1,7 +1,7 @@
 """
 beginning of project application.
 """
-from turtle import Turtle
+import turtle
 
 
 '''
@@ -21,21 +21,6 @@ def screen_dimensions():
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 
-def click_event(x_coord, y_coord):
-    if taking_input:
-        points.append((x_coord, y_coord))
-    else:
-        pass
-
-
-def enter_event():
-    print('enter was pressed :D')
-
-
-def game():
-    pass
-
-
 def main():
     """
     The starting function.
@@ -43,8 +28,7 @@ def main():
     and sets the corresponding handlers
     """
     # getting the turtle
-    t = Turtle()
-    t.hideturtle()
+    t = turtle.Turtle()
     # getting the screen
     window = t.screen
 
@@ -58,14 +42,32 @@ def main():
     starty_centered = (screen_height - window_height) // 2
 
     window.setup(width=0.618, height=0.8,
-              startx=startx_centered, starty=starty_centered)
+                 startx=startx_centered, starty=starty_centered)
 
     # True because we want to add multiple handlers, not replace them :)
-    t.onclick(click_event, btn=1, add=True)
-    window.onkey(enter_event, 'enter')
 
-    # game()
-    window.mainloop()
+    turtle.listen()
+
+    def click_event(x_coord=None, y_coord=None):
+        print('clicking...')
+        turtle.turtles()[0].forward(50)
+        if taking_input:
+            points.append((x_coord, y_coord))
+        else:
+            pass
+    t.screen.onclick(click_event)
+
+    def space_event():
+        print('space pressing...')
+        turtle.turtles()[0].showturtle()
+        t.screen.ontimer(turtle.turtles()[0].hideturtle, 500)
+        print('enter was pressed :D')
+    turtle.onkey(space_event, 'space')
+
+    turtle.mainloop()
+
+    # x, y = 0, 0
+    # print(x, y)
 
 
 if __name__ == '__main__':
