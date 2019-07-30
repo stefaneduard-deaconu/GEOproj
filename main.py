@@ -35,21 +35,21 @@ def line(A, B, tad, color):
     tad.goto(tads_position)
     tad.color(tads_color[0], tads_color[1])
 
+
 """
 ###############
 Event handlers.
 ###############
 """
+
+
 def draw_to_point(x=None, y=None):
     # if we presses the start button, then ...
     #
     print('draw:')
     tad.goto(x, y)
-    if taking_input:
-        polygon.append((x, y))
-        print(polygon)
-    else:
-        pass
+    polygon.append((x, y))
+    # print(polygon)
 
 
 def first_point(x=None, y=None):
@@ -60,13 +60,16 @@ def first_point(x=None, y=None):
     tad.pendown()
     polygon.clear()
     polygon.append((x, y))  # first point
-    print(polygon)
+    # print(polygon)
     tad.screen.onclick(draw_to_point, btn=1)
 
 
 def start(event):
-    print(polygon)
-    print('you presses "Start"')
+    """
+    This even happens after giving the input.
+    The target is to triangulate the polygon
+    """
+    print('you pressed "Start"')
     # finish the polygon:
     tad.goto(polygon[0][0], polygon[0][1])
     # Tad. Go sit
@@ -88,9 +91,9 @@ def start(event):
         returns one of its triangulations, as a list of triangles.
     """
     y_polygons = y_decompose(polygon)
-    triangles = []
-    for poly in y_polygons:
-        triangles += triangulate(poly)
+    # triangles = []
+    # for poly in y_polygons:
+    #     triangles += triangulate(poly)
 
     def draw_triangles():
         pass

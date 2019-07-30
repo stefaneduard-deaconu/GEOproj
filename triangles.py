@@ -23,6 +23,19 @@ def y_decompose(polygon):
         else:
             return 'leftturn'
 
+    def reverse_trig_order(polygon):
+        # function to test if the polygon's point order is in (app.) trig order
+        index = polygon.index((max(polygon, key=lambda A: A[1])))
+        A, B = polygon[index - 1], polygon[index]
+        C = polygon[(index + 1) % len(polygon)]
+        if trig_order(A, B, C) == 'leftturn':
+            return True
+        else:
+            return False
+
+    if (reverse_trig_order(polygon)):
+        polygon = polygon[-len(polygon):]
+
     def get_types(pts):
         # print('\n', [pts[-1]])
         # print('\n', pts)
@@ -44,15 +57,127 @@ def y_decompose(polygon):
                     types.update(dict({B: 'split'}))  # split
                 else:
                     types.update(dict({B: 'merge'}))  # merge
-        return [types[p] for p in pts]  # the order is odd
+        return types  # we return a dictionary, that says the types of the pts.
+
+    def get_fathers(pts):
+        """
+        We practically return the neighbor points.
+        In the pts, the points are the one of a polygon, so for each index
+            the neighbors are the left and right indexed items.
+        Only that we only catalogue as 'father' the items with a greate y-coord
+        """
+        fathers = {}
+        for p in pts:
+            index = pts.index(p)
+            left, right = pts[index - 1], pts[(index + 1) % len(pts)]
+            if left[0] > right[0]:  # keep them left to left and right to right
+                left, right = right, left
+            if types[p] in ['end', 'merge']:  # two fathers
+                fathers[p] = [left, right]
+            elif types[p] in ['leftturn', 'rightturn']:  # one father; find it
+                if left[1] >= right[1]:  # one of them must be so -> the father
+                    fathers[p] = [left]
+                else:
+                    fathers[p] = [right]
+        return fathers
+
     from pprint import pprint
-    pprint(get_types(polygon))
+    types = get_types(polygon)
+    fathers = get_fathers(polygon)  # we don't check the trig. order here :D
+    # pprint(types)
+    # pprint(fathers)
+    y_ordered_points = sorted(polygon, key=lambda A: -A[1])
+    x_order = {
+        point: index for index, point in enumerate(sorted(polygon, key=lambda A: A[0]))
+    }
+    # pprint(y_ordered_points)
+    Comp(Object):
+        def __init__(self, points, given_state=(None, None), given_minmax=None):
+            if isinstance(points, tuple) and len(tuple) == 2:
+                self.points = [points]
+                # in this case, the points must be a start
+                self.state = (None, None)  # can be merge or split :D
+                self.minmax_order = (x_order[points], x_order[points])
+            elif isinstance(points, list):
+                # we created a new component from a set of points
+                self.points = points
+                self.state = given_state  # given state has state and point
+                self.minmax_order = given_minmax
+        def turn_to_poly(self):  # TODO
+            pass
+    comps = []
+    polys = []  # we can get the polys with a function inside Comp :D
+    for cur_index, cur_point in enumerated(y_ordered_points):
+        if types[cur_point] == 'start':
+            comps.append(
+                Comp(cur_point)
+            )
+        elif types[cur_point] == 'merge':
+            points, left_index, right_index = [], None, None
+            for comp_index, comp in enumerate(comps):
+                if comp.minmax_order[0] == x_order[cur_point]:  # right half
+                    right_index = comp_index
+                elif comp.minmax_order[1] = x_order[cur_point]:  # left half
+                    left_index = comp_index
+            # we always have two corresponding components when hitting a merge
+            # (*0) we use the previous two components to merge them into one
+            left_comp = comps.pop(left_index)
+            right_comp = comps.pop(right_index)
+            # (*1) we get the points
+            points += left_comp.points
+            points += right_comp.points
+            # (*2) we merge extra merge's (left or right or both Comp's)
+            if (left_comp.state[0] == 'merge'):
+                # we use the fathers object to get the poly's points
+                from_lt = [left_comp.state[1]]
+                while types[from_lt.top()] != 'start':  # (*)
+                    from_lt.append(father[from_lt.top()].top())  # rightmost
+                from_rt = [cur_point]
+                while types[from_rt.top()] != 'start':  # (*)
+                    from_rt.append(father[from_rt.top()][0])  # lefttmost
+                polys.append(
+                    from_lt[-len(from_lt):] + from_rt
+                )
+            elif (right_comp.state[0] == 'merge'):
+                # we use the fathers object to get the poly's points
+                from_lt = [cur_point]
+                while types[from_lt.top()] != 'start':  # (*)
+                    from_lt.append(father[from_lt.top()].top())  # rightmost
+                from_rt = [right_comp.state[1]]
+                while types[from_rt.top()] != 'start':  # (*)
+                    from_rt.append(father[from_rt.top()][0])  # lefttmost
+            # there can't be the state of 'split' for any component (it is
+            #   solved by the algo on the 'split' if-branch), so
+            #   there only remains one case:
+            #   !!! without else, because we also do this when merging merge's
+            # else:  # we now create a Comp with the state of 'merge'
+            # (*!!!) I haven't get rid of the extra points :(, yet
+            #   and possibly modife left_comp.minmax_order :(
+            comps.append(
+                Comp(points, 'merge', (
+                     left_comp.minmax_order[0],
+                     right_comp.minmax_order[1]
+                     ))
+                )
+        elif types[cur_point] == 'split':
+            # we create from one component, two Comp's. so be careful to give
+            #   points, state and minmax_order
+            # (1) find the Comp's.
+            # they are two of adjacent ones with rightmost being the left father
+            #   and leftmost being the right father of cur_point
+            pass
+        else:  # the last case is a 'middle', so we only check if we can solve
+            #   any merging stuff :D
+            #   TODO or we just solve this as a first if, no matter what?
+            pass
 
 
 def triangulate(y_polygon):
     pass
 
+
 # for testing:
+
 
 def sign(num):
     if num < 0:
@@ -62,13 +187,6 @@ def sign(num):
     else:
         return 0
 
-def trig_order(a, b, c):
-    res = a[0] * b[1] + b[0] * c[1] + c[0] * a[1]
-    res -= c[0] * b[1] + b[0] * a[1] + a[0] * c[1]
-    if sign(res) == 1:
-        return 'leftturn'
-    else:
-        return 'rightturn'
 
 def main():
     polygons = [
@@ -91,23 +209,7 @@ def main():
             tad.goto(p[0], p[1])
         tad.screen.mainloop()
 
-    def reverse_trig_ordered(polygon):
-        # function to test if the polygon's border order is in (app.) trig order
-        index = polygon.index((max(polygon, key=lambda A: A[1])))
-        A, B = polygon[index - 1], polygon[index]
-        C = polygon[(index + 1) % len(polygon)]
-        if trig_order(A, B, C) == 'leftturn':
-            return True
-        else:
-            return False
-
-    for poly in polygons:
-        print(reverse_trig_ordered(poly))
-        if reverse_trig_ordered(poly):
-            print(poly[-len(poly):])
-        else:
-            print(poly)
-    for poly in polygons[1:2]:
+    for poly in polygons[3:4]:
         draw_poly(poly)
         y_decompose(poly)
 
