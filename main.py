@@ -36,8 +36,24 @@ def main():
     window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
     #
     root = tk.Tk(screenName='turtle', baseName='turtle')
-    canvas = tk.Canvas(master=root, width=window_width, height=window_height)
-    canvas.pack()
+    canvas = tk.Canvas(width=window_width, height=window_height)
+
+    # creating the grid:
+    start_button = tk.Button(cnf={'text': 'Start', 'width': '25', 'height': '3'})
+    start_button.grid(row=0, column=0, rowspan=2, sticky='W')
+    reset_button = tk.Button(cnf={'text': 'Reset', 'width': '25', 'height': '3'})
+    reset_button.grid(row=0, column=1, rowspan=2, sticky='E')
+
+    button_1 = tk.Button(cnf={'text': '1', 'width': '10'})
+    button_1.grid(row=0, column=0, sticky='E')
+    button_2 = tk.Button(cnf={'text': '2', 'width': '10'})
+    button_2.grid(row=0, column=1, sticky='W')
+    button_3 = tk.Button(cnf={'text': '3', 'width': '10'})
+    button_3.grid(row=1, column=0, sticky='E')
+    button_4 = tk.Button(cnf={'text': '4', 'width': '10'})
+    button_4.grid(row=1, column=1, sticky='W')
+
+    canvas.grid(row=2, column=0, columnspan=2)
 
     tad = turtle.RawTurtle(canvas)
     tad.color('white', 'white')
@@ -49,79 +65,35 @@ def main():
     # the first one must be -7 as to be leftmost on windows 10 :))
     # let's center the window:
     x_centered = int((screen_width - window_width) // 2)
-    y_centered = int((screen_height - window_height) // 2)
-    root.geometry('+{}+{}'.format(x_centered, y_centered))  # these correspond
+    y_first_fifth = int((screen_height - window_height) // 5)
+    root.geometry('+{}+{}'.format(x_centered, y_first_fifth))  # these correspond
     # to xstart and ystart in turtle.screen.setup :D
     canvas.config(bg='black')
     tad.color('lime', 'lime')
 
-    # using the turtle to first draw the 'buttons' :D
+    # using the turtle to first draw the 'coordinate axes' :D
 
-    def rectangle(A, B):
+    def line(A, B, color):
         x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
         tads_position = tad.position()
-        # we could check if the pen is down TODO
-        if x0 > x1 or y0 > y1:  # sort them
-            x0, y0, x1, y1 = x1, y1, x0, y0
-        tad.penup()
-        tad.goto(x0, y0)
-        tad.pendown()
-        for x, y in [(x0, y1), (x1, y1), (x1, y0), (x0, y0)]:
-            tad.goto(x, y)
-        tad.penup()
-        tad.goto(tads_position)
-
-    def line(A, B):
-        x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
-        tads_position = tad.position()
+        tads_color = tad.color()
+        tad.color(color, color)
         tad.penup()
         tad.goto(x0, y0)
         tad.pendown()
         tad.goto(x1, y1)
         tad.penup()
         tad.goto(tads_position)
+        tad.color(tads_color[0], tads_color[1])
 
-    line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0))
+    line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0), 'white')
     tad.setheading(90)
-    line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2))
+    line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2), 'white')
     tad.color('lime', 'lime')
 
-    # turtle.listen()  # this also opens the window :DDCC
-    # the 'buttons'
-    start_button = ((-window_width * 0.9 // 2, window_height * 0.9 // 2 - 30),
-                    (-window_width * 0.9 // 2 + 60, window_height * 0.9 // 2))
-    reset_button = ((window_width * 0.9 // 2 - 60, window_height * 0.9 // 2 - 30),
-                    (window_width * 0.9 // 2, window_height * 0.9 // 2))
-
-    def draw_button(button, text):
-        tads_position = tad.position()
-        rectangle(button[0], button[1])
-        tad.penup()
-        tad.goto(button[0])
-        tad.right(90)
-        tad.forward(10)
-        tad.left(90)
-        tad.write(text, align='left', font=('Arial', 18, 'normal'))
-        tad.goto(tads_position)
-
-    draw_button(start_button, 'start')
-    draw_button(reset_button, 'stop')
-
-    def inside(A, button):  # for us, a button is a pair of pairs (tuples)
-        # is A inside of the button?
-        (x0, y0), (x1, y1) = button[0], button[1]
-        if x0 > x1 or y0 > y1:  # sort them
-            x0, y0, x1, y1 = x1, y1, x0, y0
-        if A[0] >= x0 and A[0] <= x1 and A[1] >= y0 and A[1] <= y1:
-            print('true', A, x0, y0, x1, y1)
-            return True
-        else:
-            print('false', A, x0, y0, x1, y1)
-            return False
-
     def draw_to_point(x=None, y=None):
-        if inside((x, y), start_button):  # so if it is inside the button
-            taking_input = False
+        # if we presses the start button, then ...
+        #
         tad.goto(x, y)
         if taking_input:
             points.append((x, y))
@@ -137,7 +109,39 @@ def main():
         points.append((x, y))
         tad.screen.onclick(draw_to_point, btn=1)
 
-    # tad.screen.onclick(first_point)
+    def start(event):
+        print('you presses "Start"')
+        # finish the polygon:
+        tad.goto(points[0][0], points[0][1])
+        tad.penup()
+        tad.shapesize(3, 3)
+        print()
+
+    def reset(event):
+        print('you presses "Reset"')
+
+    def exercise_1(event):
+        print('you presses button "1"')
+
+    def exercise_2(event):
+        print('you presses button "2"')
+
+    def exercise_3(event):
+        print('you presses button "3"')
+
+    def exercise_4(event):
+        print('you presses button "4"')
+
+    print(start_button, reset_button, button_1, button_2, button_3, button_4)
+    start_button.bind('<Button-1>', start)
+    reset_button.bind('<Button-1>', reset)
+    button_1.bind('<Button-1>', exercise_1)
+    button_2.bind('<Button-1>', exercise_2)
+    button_3.bind('<Button-1>', exercise_3)
+    button_4.bind('<Button-1>', exercise_4)
+
+
+    tad.screen.onclick(first_point)
     #
     # turtle.mainloop()
     root.mainloop()
