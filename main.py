@@ -115,7 +115,25 @@ def main():
         tad.goto(points[0][0], points[0][1])
         tad.penup()
         tad.shapesize(3, 3)
-        print()
+        tad.setheading(90)
+        tad.goto(window_width * 0.9 // 2, window_height * 0.9 // 2)
+        from triangles import y_decompose
+        """
+        Function that given the border of a polygon, generates a decomposition
+            of it as y-monotone polygons.
+        """
+        from triangles import triangulate
+        """
+        Function that given a y-monotone polygon,
+            returns one of its triangulations, as a list of triangles.
+        """
+        y_polygons = y_decompose(polygon)
+        triangles = []
+        for poly in y_polygons:
+            triangles += triangulate(poly)
+        def draw_triangles():
+            pass
+
 
     def reset(event):
         print('you presses "Reset"')
@@ -132,14 +150,12 @@ def main():
     def exercise_4(event):
         print('you presses button "4"')
 
-    print(start_button, reset_button, button_1, button_2, button_3, button_4)
     start_button.bind('<Button-1>', start)
     reset_button.bind('<Button-1>', reset)
     button_1.bind('<Button-1>', exercise_1)
     button_2.bind('<Button-1>', exercise_2)
     button_3.bind('<Button-1>', exercise_3)
     button_4.bind('<Button-1>', exercise_4)
-
 
     tad.screen.onclick(first_point)
     #
