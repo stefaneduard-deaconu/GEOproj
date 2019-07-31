@@ -61,10 +61,13 @@ def y_decompose(polygon):
 
     def get_fathers(pts):
         """
+
         We practically return the neighbor points.
+
         In the pts, the points are the one of a polygon, so for each index
             the neighbors are the left and right indexed items.
         Only that we only catalogue as 'father' the items with a greate y-coord
+
         """
         fathers = {}
         for p in pts:
@@ -220,7 +223,7 @@ def y_decompose(polygon):
                 # We find the enclosing component:
                 for comp in comps:
                     margin_left, margin_right = comp.get_margins()
-                    if margin_left[0] <= cur_point[0] and curpoint[0] <= margin_right:
+                    if margin_left[0] <= cur_point[0] and cur_point[0] <= margin_right:
                         # we check if the Comp has multiple points
                         # (*if there's a merge, it's also the lowest point :D)
                         # (*we don't use fathers anymore as a binary tree,
@@ -245,8 +248,7 @@ def y_decompose(polygon):
                             # otherwise:
                             # we use the rightmost point to split the Comp
                             # doesn't solve the 'merge'. We treat is separately
-                            other_index = 0
-                            other_point = comp.points[0] # rightmost point
+                            other_point = comp.points[0]  # rightmost point
                             # now we split into two comps
                             new_comp_points = None
                             #   we create the poly for the new one
@@ -270,22 +272,21 @@ def y_decompose(polygon):
                             #   we modify the old comp:
                             comp.points = [cur_point] + comp.points
                         break
-
-                if wrap_comp is None:
-                    print("SOMETHING UNEXPECTED HAPPENED -",
-                          "couldn't find the component to split")
-                pass
             elif types[cur_point] == 'end':
                 # in this case,
                 #   if 'merging' we just turn the 'end' into two ends => 2 poly
                 #   otherwise we just get a poly (comp.points)
                 # First we find the corresponding component (there must be!)
                 for index, comp in enumerate(comps):
-                    if comp.get_margins == fathers[cur_point]:  # simple
-                        if comp.state == 'merge':
+                    print(comp.points)
+                    print(fathers[cur_point])
+                    print(comp.get_margins())
+                    if comp.get_margins() == tuple(fathers[cur_point]):  # simple
+                        print('END')
+                        if comp.state[0] == 'merge':
                             # if there's a 'merge' state, we create two polys:
                             merge_point = comp.state[1]
-                            merge_index = comp.index(merge_point)
+                            merge_index = comp.points.index(merge_point)
                             polys.append(
                                 comp.points[merge_index:] + [cur_point]
                                 )
@@ -348,6 +349,7 @@ def y_decompose(polygon):
                 ('state', comp.state)
                 ])
             pprint(dictionary)
+    pprint(polys)
 
 
 def triangulate(y_polygon):
