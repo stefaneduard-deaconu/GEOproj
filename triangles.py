@@ -81,7 +81,7 @@ def y_decompose(polygon):
                     fathers[p] = [right]
         return fathers
 
-    from pprint import pprint
+    # from pprint import pprint
     types = get_types(polygon)
     fathers = get_fathers(polygon)  # we don't check the trig. order here :D
     # pprint(types)
@@ -91,85 +91,142 @@ def y_decompose(polygon):
         point: index for index, point in enumerate(sorted(polygon, key=lambda A: A[0]))
     }
     # pprint(y_ordered_points)
-    Comp(Object):
+
+    class Comp(object):
         def __init__(self, points, given_state=(None, None), given_minmax=None):
-            if isinstance(points, tuple) and len(tuple) == 2:
-                self.points = [points]
-                # in this case, the points must be a start
-                self.state = (None, None)  # can be merge or split :D
-                self.minmax_order = (x_order[points], x_order[points])
-            elif isinstance(points, list):
+            if isinstance(points, list):
                 # we created a new component from a set of points
                 self.points = points
                 self.state = given_state  # given state has state and point
                 self.minmax_order = given_minmax
+            else:
+                print('NOT A LIST')
+
         def turn_to_poly(self):  # TODO
+            # we know that every point must have a father, except for the sole
+            #   'start' one
             pass
+
+        def add_point(self, point):  # point is a tuple with 2 items
+            # we presume there already are points. From the __init__
+            # and it's father must be here
+            # but we don't place it like in a graph, we only arrange them
+            #   when using turn_to_poly
+            # (*) does it have a merge? -> NO
+            self.points.append(point)
+
+        def solve_merge(self, comp):  # used just after we got into a merge state
+            print('solving merge')
+            pass  # here we merge using a point ,be it middle, merge, split or anything
+
+        # def __str__(self):  # for the pprint
+        #     if self.points:
+        #         pprint(points)
+        #     else:
+        #         pprint('no points yet')
+        #     if self.state:
+        #         pprint(state)
+        #     if self.minmax_order:
+        #         pprint(minmax_order)
     comps = []
     polys = []  # we can get the polys with a function inside Comp :D
-    for cur_index, cur_point in enumerated(y_ordered_points):
+    for cur_index, (x, y) in enumerate(y_ordered_points):
+        cur_point = (x, y)
+
+        from pprint import pprint
+        print('-' * 50)
+        print(cur_point, '\'{}\''.format(types[cur_point]), '----> point {}'.format(cur_index))
+
         if types[cur_point] == 'start':
             comps.append(
-                Comp(cur_point)
+                Comp([cur_point], given_minmax=(
+                    x_order[cur_point],
+                    x_order[cur_point]
+                ))
             )
-        elif types[cur_point] == 'merge':
-            points, left_index, right_index = [], None, None
-            for comp_index, comp in enumerate(comps):
-                if comp.minmax_order[0] == x_order[cur_point]:  # right half
-                    right_index = comp_index
-                elif comp.minmax_order[1] = x_order[cur_point]:  # left half
-                    left_index = comp_index
-            # we always have two corresponding components when hitting a merge
-            # (*0) we use the previous two components to merge them into one
-            left_comp = comps.pop(left_index)
-            right_comp = comps.pop(right_index)
-            # (*1) we get the points
-            points += left_comp.points
-            points += right_comp.points
-            # (*2) we merge extra merge's (left or right or both Comp's)
-            if (left_comp.state[0] == 'merge'):
-                # we use the fathers object to get the poly's points
-                from_lt = [left_comp.state[1]]
-                while types[from_lt.top()] != 'start':  # (*)
-                    from_lt.append(father[from_lt.top()].top())  # rightmost
-                from_rt = [cur_point]
-                while types[from_rt.top()] != 'start':  # (*)
-                    from_rt.append(father[from_rt.top()][0])  # lefttmost
-                polys.append(
-                    from_lt[-len(from_lt):] + from_rt
-                )
-            elif (right_comp.state[0] == 'merge'):
-                # we use the fathers object to get the poly's points
-                from_lt = [cur_point]
-                while types[from_lt.top()] != 'start':  # (*)
-                    from_lt.append(father[from_lt.top()].top())  # rightmost
-                from_rt = [right_comp.state[1]]
-                while types[from_rt.top()] != 'start':  # (*)
-                    from_rt.append(father[from_rt.top()][0])  # lefttmost
-            # there can't be the state of 'split' for any component (it is
-            #   solved by the algo on the 'split' if-branch), so
-            #   there only remains one case:
-            #   !!! without else, because we also do this when merging merge's
-            # else:  # we now create a Comp with the state of 'merge'
-            # (*!!!) I haven't get rid of the extra points :(, yet
-            #   and possibly modife left_comp.minmax_order :(
-            comps.append(
-                Comp(points, 'merge', (
-                     left_comp.minmax_order[0],
-                     right_comp.minmax_order[1]
-                     ))
-                )
-        elif types[cur_point] == 'split':
-            # we create from one component, two Comp's. so be careful to give
-            #   points, state and minmax_order
-            # (1) find the Comp's.
-            # they are two of adjacent ones with rightmost being the left father
-            #   and leftmost being the right father of cur_point
-            pass
-        else:  # the last case is a 'middle', so we only check if we can solve
-            #   any merging stuff :D
-            #   TODO or we just solve this as a first if, no matter what?
-            pass
+        else:
+            if types[cur_point] == 'merge':
+                left_index, right_index = None, None
+                for comp_index, comp in enumerate(comps):
+                    if comp.minmax_order[0] == x_order[cur_point]:  # right half
+                        right_index = comp_index
+                    elif comp.minmax_order[1] == x_order[cur_point]:  # left half
+                        left_index = comp_index
+                # we always have two corresponding components when not 'starting' a
+                #   new merge
+                print(type(left_index), type(right_index))
+                left_comp = comps.pop(left_index)
+                right_comp = comps.pop(right_index)
+                points = []
+                # (*0) we use the previous two components to merge them into one
+                # TODO  but in the future we also eliminate from the comps
+                # (*1) we get the points
+                points += left_comp.points
+                points += right_comp.points
+                # (*2) we merge extra merge's (left or right or both Comp's)
+                if (left_comp.state[0] == 'merge'):
+                    # we use the fathers object to get the poly's points
+                    from_lt = [left_comp.state[1]]
+                    while types[from_lt.top()] != 'start':  # (*)
+                        from_lt.append(fathers[from_lt.top()].top())  # rightmost
+                    from_rt = [cur_point]
+                    while types[from_rt.top()] != 'start':  # (*)
+                        from_rt.append(fathers[from_rt.top()][0])  # lefttmost
+                    polys.append(
+                        from_lt[-len(from_lt):] + from_rt
+                    )
+                elif (right_comp.state[0] == 'merge'):
+                    # we use the fathers object to get the poly's points
+                    from_lt = [cur_point]
+                    while types[from_lt.top()] != 'start':  # (*)
+                        from_lt.append(fathers[from_lt.top()].top())  # rightmost
+                    from_rt = [right_comp.state[1]]
+                    while types[from_rt.top()] != 'start':  # (*)
+                        from_rt.append(fathers[from_rt.top()][0])  # lefttmost
+                # there can't be the state of 'split' for any component (it is
+                #   solved by the algo on the 'split' if-branch), so
+                #   there only remains one case:
+                #   !!! without else, because we also do this when merging merge's
+                # else:  # we now create a Comp with the state of 'merge'
+                # (*!!!) I haven't get rid of the extra points :(, yet
+                #   and possibly modife left_comp.minmax_order :(
+                comps.append(
+                    Comp(points, 'merge', (
+                         left_comp.minmax_order[0],
+                         right_comp.minmax_order[1]
+                         ))
+                    )
+            elif types[cur_point] == 'split':
+                # we create from one component, two Comp's. so be careful to give
+                #   points, state and minmax_order
+                # (1) find the Comp's.
+                # they are two of adjacent ones with rightmost being the left father
+                #   and leftmost being the right father of cur_point
+                pass
+            elif types[cur_point] == 'end':  # the last case is a 'middle', so we only check if we can solve
+                #   any merging stuff :D
+                #   TODO or we just solve this as a first if, no matter what?
+                # add to the corresponding component - find it by following
+                #   the fathers :D
+                pass
+            elif types[cur_point] in ['rightturn', 'leftturn']:
+                # find the father (only one)
+                father = fathers[cur_point][0]
+                print('middle; point and father are:', cur_point, father)
+                for comp in comps:
+                    if father in comp.points:
+                        # the function automatically checks for previous merges
+                        if comp.state[0] == 'merge':
+                            comp.solve_merge(cur_point)
+                        else:
+                            # we add the son the to comp
+                            comp.add_point(cur_point)
+                        break
+        # no matter what, we print the components
+        for comp in comps:
+            print('Comp {}:'.format(comps.index(comp)))
+            pprint({point: types[point] for point in comp.points})
+
 
 
 def triangulate(y_polygon):
@@ -210,8 +267,9 @@ def main():
         tad.screen.mainloop()
 
     for poly in polygons[3:4]:
-        draw_poly(poly)
+        # draw_poly(poly)
         y_decompose(poly)
+
 
 if __name__ == '__main__':
     main()
