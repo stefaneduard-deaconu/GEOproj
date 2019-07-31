@@ -113,6 +113,11 @@ def y_decompose(polygon):
             # but we don't place it like in a graph, we only arrange them
             #   when using turn_to_poly
             # (*) does it have a merge? -> NO
+            # we update minmax_order
+            if minmax_order[0] > x_order[point]:
+                minmax_order[0] = x_order[point]
+            elif minmax_order[1] < x_order[point]:
+                minmax_order[1] = x_order[point]
             self.points.append(point)
 
         def solve_merge(self, comp):  # used just after we got into a merge state
@@ -225,7 +230,9 @@ def y_decompose(polygon):
         # no matter what, we print the components
         for comp in comps:
             print('Comp {}:'.format(comps.index(comp)))
-            pprint({point: types[point] for point in comp.points})
+            dictionary = {point: types[point] for point in comp.points}
+            dictionary.update([('minmax', comp.minmax_order)])
+            pprint(dictionary)
 
 
 
