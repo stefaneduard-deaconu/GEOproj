@@ -117,7 +117,7 @@ def y_decompose(polygon):
                     polygon_index = polygon.index(self.points[0])
                 else:
                     polygon_index = polygon.index(self.points[1])
-                return (polygon[polygon_index + 1], polygon[polygon_index - 1])
+                return (polygon[(polygon_index + 1) % len(polygon)], polygon[polygon_index - 1])
 
         def turn_to_poly(self):  # TODO
             # we know that every point must have a father, except for the sole
@@ -223,7 +223,7 @@ def y_decompose(polygon):
                 # We find the enclosing component:
                 for comp in comps:
                     margin_left, margin_right = comp.get_margins()
-                    if margin_left[0] <= cur_point[0] and cur_point[0] <= margin_right:
+                    if margin_left[0] <= cur_point[0] and cur_point[0] <= margin_right[0]:
                         # we check if the Comp has multiple points
                         # (*if there's a merge, it's also the lowest point :D)
                         # (*we don't use fathers anymore as a binary tree,
@@ -278,11 +278,11 @@ def y_decompose(polygon):
                 #   otherwise we just get a poly (comp.points)
                 # First we find the corresponding component (there must be!)
                 for index, comp in enumerate(comps):
-                    print(comp.points)
+                    # print(comp.points)
+                    print('END')
                     print(fathers[cur_point])
                     print(comp.get_margins())
                     if comp.get_margins() == tuple(fathers[cur_point]):  # simple
-                        print('END')
                         if comp.state[0] == 'merge':
                             # if there's a 'merge' state, we create two polys:
                             merge_point = comp.state[1]
@@ -349,7 +349,7 @@ def y_decompose(polygon):
                 ('state', comp.state)
                 ])
             pprint(dictionary)
-    pprint(polys)
+        pprint(polys)
 
 
 def triangulate(y_polygon):
@@ -416,8 +416,8 @@ def main():
         tad.goto(0, 0)
         tad.screen.mainloop()
 
-    for poly in polygons[3:4]:
-        # draw_poly(poly)
+    for poly in polygons[2:3]:
+        draw_poly(poly)
         y_decompose(poly)
 
 
