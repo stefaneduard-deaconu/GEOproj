@@ -276,12 +276,32 @@ def y_decompose(polygon):
                           "couldn't find the component to split")
                 pass
             elif types[cur_point] == 'end':
-                # there must be a Comp to end - so turn into one or two polys
-                #   2 if it has a merge state
-                # lst = ['current']
-                # lst.extend(['two', 'three'])
-                # print(lst)
-                pass
+                # in this case,
+                #   if 'merging' we just turn the 'end' into two ends => 2 poly
+                #   otherwise we just get a poly (comp.points)
+                # First we find the corresponding component (there must be!)
+                for index, comp in enumerate(comps):
+                    if comp.get_margins == fathers[cur_point]:  # simple
+                        if comp.state == 'merge':
+                            # if there's a 'merge' state, we create two polys:
+                            merge_point = comp.state[1]
+                            merge_index = comp.index(merge_point)
+                            polys.append(
+                                comp.points[merge_index:] + [cur_point]
+                                )
+                            polys.append(
+                                comp.points[:merge_index + 1] + [cur_point]
+                                )
+                        else:
+                            # if there's no state, we just add the cur_point
+                            #   to the comp's points to get the final polygon
+                            polys.append(
+                                comp.points + [cur_point]
+                                )
+
+                        # at the end, we remove (pop) the Comp
+                        comps.pop(index)
+                        break
             elif types[cur_point] in ['rightturn', 'leftturn']:
                 # find the father (only one)
                 father = fathers[cur_point][0]
