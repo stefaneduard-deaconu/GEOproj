@@ -305,14 +305,22 @@ def y_decompose(polygon):
                         break
             elif types[cur_point] in ['rightturn', 'leftturn']:
                 # find the father (only one)
+                polygon_index = polygon.index(cur_point)
                 father = fathers[cur_point][0]
+                downwards = None
+                if father == polygon[polygon_index - 1]:
+                    downwards = True
+                elif father == polygon[polygon_index + 1]:
+                    downwards = False
                 print('middle; point and father are:', cur_point, father)
                 for comp in comps:
-                    if comp.points[0] == father or comp.points[-1] == father:
+                    case_1 = comp.points[0] == father and downwards
+                    case_2 = comp.points[-1] == father and not downwards
+                    if case_1 or case_2:
                         # the function automatically checks for previous merges
                         if comp.state[0] == 'merge':
                             merge_point = comp.state[1]
-                            merge_index = comp.index(merge_point)
+                            merge_index = comp.points.index(merge_point)
                             # we see which ear do we clip :D (ear-clipping)
                             if cur_point[0] < merge_point[0]:  # to the left
                                 polys.append(
@@ -350,6 +358,7 @@ def y_decompose(polygon):
                 ])
             pprint(dictionary)
         pprint(polys)
+    return polys
 
 
 def triangulate(y_polygon):
@@ -416,9 +425,16 @@ def main():
         tad.goto(0, 0)
         tad.screen.mainloop()
 
+    from pprint import pprint
     for poly in polygons[2:3]:
         draw_poly(poly)
-        y_decompose(poly)
+        polys = y_decompose(poly)
+        print()
+        print('*' * len('* In the end we\'ve got: *'))
+        print('* In the end we\'ve got: *')
+        print('*' * len('* In the end we\'ve got: *'))
+        print()
+        pprint(polys)
 
 
 if __name__ == '__main__':
