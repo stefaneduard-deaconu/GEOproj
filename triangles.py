@@ -94,59 +94,41 @@ def y_decompose(polygon):
 
     class Comp(object):
         def __init__(self, given_points, given_state=(None, None)):
-            if isinstance(points, tuple):  # first time, just a 'start' !!!!!!!
-                # we created a new component from a set of points
-                self.points = [given_points]
-                self.state = given_state  # given state has state and point
-            if isinstance(points, list):
+            if isinstance(given_points, list):
                 # we created a new component from a set of points
                 self.points = given_points
                 self.state = given_state  # given state has state and point
-            else:
-                print('NOT A LIST - problem with a Comp initialization')
+            else:  # isinstance(given_points, tuple):  # first time, just a 'start' !!!!!!!
+                # we created a new component from a set of points
+                self.points = [given_points]
+                self.state = given_state  # given state has state and point
+            # else:
+            #     print('NOT A LIST - problem with a Comp initialization')
 
         def get_margins(self):
-            if len(points) >= 3:
-                return (points[0], points[-1])
+            if len(self.points) >= 3:
+                return (self.points[-1], self.points[0])
             else:
                 polygon_index = None
-                if types[points[0]] == 'start':
-                    polygon_index = polygon.index(points[0])
+                if types[self.points[0]] == 'start':  # we get the start
+                    polygon_index = polygon.index(self.points[0])
                 else:
-                    polygon_index = polygon.index(points[1])
-                return (polygon[polygon_index - 1], polygon[polygon_index + 1])
+                    polygon_index = polygon.index(self.points[1])
+                return (polygon[polygon_index + 1], polygon[polygon_index - 1])
 
         def turn_to_poly(self):  # TODO
             # we know that every point must have a father, except for the sole
             #   'start' one
             pass
 
-        def add_point(self, point):  # point is a tuple with 2 items
-            # we presume there already are points. From the __init__
-            # and it's father must be here
-            # but we don't place it like in a graph, we only arrange them
-            #   when using turn_to_poly
-            # (*) does it have a merge? -> NO
-            # we update minmax_order
-            if self.minmax_order[0] > x_order[point]:
-                self.minmax_order = (x_order[point], self.minmax_order[1])
-            elif self.minmax_order[1] < x_order[point]:
-                self.minmax_order = (self.minmax_order[0], x_order[point])
-            self.points.append(point)
-
-        def solve_merge(self, comp):  # used just after we got into a merge state
-            print('solving merge')
-            pass  # here we merge using a point ,be it middle, merge, split or anything
-
-        # def __str__(self):  # for the pprint
-        #     if self.points:
-        #         pprint(points)
-        #     else:
-        #         pprint('no points yet')
-        #     if self.state:
-        #         pprint(state)
-        #     if self.minmax_order:
-        #         pprint(minmax_order)
+        def add_point(self, point, position):
+            # we add the point so that self.points keep the trig. order
+            if position == 0:
+                self.points = [point] + self.points
+            elif position == -1:
+                self.points.append(point)
+            else:
+                print("VALUE ERROR - the side should be 0 or -1")
     comps = []
     polys = []  # we can get the polys with a function inside Comp :D
     for cur_index, (x, y) in enumerate(y_ordered_points):
@@ -158,94 +140,137 @@ def y_decompose(polygon):
 
         if types[cur_point] == 'start':
             comps.append(
-                Comp([cur_point], given_minmax=(
-                    x_order[cur_point],
-                    x_order[cur_point]
-                ))
-            )
+                Comp(cur_point)
+                )
         else:
             if types[cur_point] == 'merge':
                 left_index, right_index = None, None
                 left_father, right_father = fathers[cur_point]
+
                 for comp_index, comp in enumerate(comps):
                     if left_father in comp.points:  # right half
                         left_index = comp_index
                     elif right_father in comp.points:  # left half
                         right_index = comp_index
+                # # testing:
+                # print('FATHERS are as it comes:', fathers[cur_point])
+                # print('POINTS are as it comes:', comps[left_index].points, comps[right_index].points)
                 # we always have two corresponding components when not 'starting' a
                 #   new merge
-                print(left_index, right_index)
+                print('Components to merge indexes --->', left_index, right_index)
                 if left_index < right_index:
                     right_comp = comps.pop(right_index)
                     left_comp = comps.pop(left_index)
                 else:
                     left_comp = comps.pop(left_index)
                     right_comp = comps.pop(right_index)
-                points = [cur_point]  # (*) forgot about it
-                # (*0) we use the previous two components to merge them into one
-                # TODO  but in the future we also eliminate from the comps
-                # (*1) we get the points
-                points += left_comp.points
-                points += right_comp.points
-                # (*2) we merge extra merge's (left or right or both Comp's)
+
+                # (*0) we get the points for both the Comps:
+                print(right_comp.points)
+                print(left_comp.points)
+                print([cur_point])
+                points = right_comp.points + [cur_point] + left_comp.points
+                print(points)
+                left_points_index = len(right_comp.points) + 1
+                # print(points)
+                # (*!)The order of the next two it's is essential when both Comp's
+                #   are in the 'merge' state
+                # (*1) we merge extra 'merge's (left or right or both Comp's)
+                print('LEFT')
                 if (left_comp.state[0] == 'merge'):
-                    # we use the fathers object to get the poly's points
-                    from_lt = [left_comp.state[1]]
-                    while types[from_lt[-1]] != 'start':  # (*)
-                        from_lt.append(fathers[from_lt[-1]][-1])  # rightmost
-                    from_rt = [cur_point]
-                    while types[from_rt[-1]] != 'start':  # (*)
-                        from_rt.append(fathers[from_rt[-1]][0])  # lefttmost
+                    # find the position of this Comp's merge
+                    left_merge_point = left_comp.state[1]
+                    left_merge_index = points.index(left_merge_point)
+                    # get the polygon
                     polys.append(
-                        from_rt + from_lt[:len(from_lt) - 1][::-1]
-                    )
-                    print(polys[-1])
-                    # update the type of the point:
-                    types[left_comp.state[1]] = 'leftturn'
-                    # delete the points from the poly, except from the bottom
-                    #   two
-                    for point in polys[-1][1:len(polys[-1]) - 1]:
-                        print(point)
-                        points.pop(points.index(point))
+                        points[left_points_index - 1:left_merge_index + 1]
+                        )
+                    # update the type of the cur_point:
+                    types[left_comp.state[1]] = 'leftturn'  # (*is it right?)
+                    # delete the points from the poly's middle part
+                    # print('POLYGON ----> ', polys[-1])
+                    for i in range(left_points_index, left_merge_index):
+                        print(points.pop(left_points_index))
+                print('RIGHT')
                 if (right_comp.state[0] == 'merge'):
-                    # we use the fathers object to get the poly's points
-                    from_lt = [cur_point]
-                    while types[from_lt[-1]] != 'start':  # (*)
-                        from_lt.append(fathers[from_lt[-1]][-1])  # rightmost
-                    from_rt = [right_comp.state[1]]
-                    while types[from_rt[-1]] != 'start':  # (*)
-                        from_rt.append(fathers[from_rt[-1]][0])  # lefttmost
+                    # find the position of this Comp's merge
+                    right_merge_point = right_comp.state[1]
+                    right_merge_index = points.index(right_merge_point)
+                    # get the polygon
                     polys.append(
-                        from_rt + from_lt[:len(from_lt) - 1][::-1]
-                    )
-                    print(polys[-1])
-                    # update the type of the point:
-                    types[left_comp.state[1]] = 'leftturn'
-                    # delete the points from the poly, except from the bottom
-                    #   two
-                    for point in polys[-1][1:len(polys[-1]) - 1]:
-                        print(point)
-                        points.pop(points.index(point))
-                # update minmax_order (*)
-                # (*) if merged == True, then do like below. otherwise compare.
-                minn, maxx = len(polygon), 0
-                for p in points:
-                    if x_order[p] < minn:
-                        minn = x_order[p]
-                    elif x_order[p] > maxx:
-                        maxx = x_order[p]
+                        points[right_merge_index:left_points_index]
+                        )
+                    # update the type of the cur_point:
+                    types[right_comp.state[1]] = 'rightturn'  # (*is it right?)
+                    # delete the points from the poly's middle part
+                    # print('POLYGON ----> ', polys[-1])
+                    for i in range(right_merge_index + 1, left_points_index - 1):
+                        print(points.pop(right_merge_index + 1))
                 comps.append(
-                    Comp(points, ('merge', cur_point), (minn, maxx))
+                    Comp(points, ('merge', cur_point))
                     )
             elif types[cur_point] == 'split':  # the last case is a 'middle', so we only check if we can solve
-                # we find the component that splits
-                #   find its y-lowest point, and use for splitting into 2 Comps
-                # we solve it like this -> we check for each component if its
-                #   upcoming points will enfence this split :D
-                wrap_comp = None
+                # we find the component that splits.
+                # there are two cases. Either a component with multiple points
+                #   or a component with one point that has the upcoming margins
+                #   (from get_margins) so as to enclose the 'split'
+                # just a test
+                if len([comp for comp in comps if comp.get_margins()[0] <= cur_point and comp.get_margins()[1] >= cur_point]) != 1:
+                    raise ValueError('THERE\'S A PROBLEM! We found more than one enclosing Comp.')
+                # We find the enclosing component:
                 for comp in comps:
-                    if
-                #
+                    margin_left, margin_right = comp.get_margins()
+                    if margin_left[0] <= cur_point[0] and curpoint[0] <= margin_right:
+                        # we check if the Comp has multiple points
+                        # (*if there's a merge, it's also the lowest point :D)
+                        # (*we don't use fathers anymore as a binary tree,
+                        #   so we don't to update the 'types' for cur_point, as
+                        #   it will only be used for the future points)
+                        if len(comp.points) > 1:  # can be a merge
+                            if comp.state[0] == 'merge':
+                                # we split using the merge
+                                merge_point = comp.state[1]
+                                merge_index = points.index(merge_point)
+                                #   we create and add a new comp:
+                                new_comp_points = comp.points[:merge_index + 1]
+                                new_comp_points.extend([cur_point])
+                                comps.append(
+                                    Comp(new_comp_points)
+                                    )
+                                #   we modify the old comp's points
+                                comp.points = [cur_point] + comp.points[merge_index:]
+                                # at the end, we eliminate the state
+                                comp.state = (None, None)
+                                break
+                            # otherwise:
+                            # we use the rightmost point to split the Comp
+                            # doesn't solve the 'merge'. We treat is separately
+                            other_index = 0
+                            other_point = comp.points[0] # rightmost point
+                            # now we split into two comps
+                            new_comp_points = None
+                            #   we create the poly for the new one
+                            if other_point[0] < cur_point[0]:
+                                new_comp_points = [cur_point, other_point]
+                            else:
+                                new_comp_points = [other_point, cur_point]
+                            comps.append(
+                                Comp(new_comp_points)
+                                )
+                            #   and we 'extend' the old one
+                            comp.points = [cur_point] + comp.points  # a new []
+
+                        else:
+                            # there is only a start we turn into 'two' starts:D
+                            #   we create the new comp:
+                            new_comp_points = comp.points + [cur_point]
+                            comps.append(
+                                Comp(new_comp_points)
+                                )
+                            #   we modify the old comp:
+                            comp.points = [cur_point] + comp.points
+                        break
+
                 if wrap_comp is None:
                     print("SOMETHING UNEXPECTED HAPPENED -",
                           "couldn't find the component to split")
@@ -253,29 +278,44 @@ def y_decompose(polygon):
             elif types[cur_point] == 'end':
                 # there must be a Comp to end - so turn into one or two polys
                 #   2 if it has a merge state
-                pass
+                # lst = ['current']
+                # lst.extend(['two', 'three'])
+                # print(lst)
                 pass
             elif types[cur_point] in ['rightturn', 'leftturn']:
                 # find the father (only one)
                 father = fathers[cur_point][0]
                 print('middle; point and father are:', cur_point, father)
                 for comp in comps:
-                    if father in comp.points:
+                    if comp.points[0] == father or comp.points[-1] == father:
                         # the function automatically checks for previous merges
                         if comp.state[0] == 'merge':
-                            #
+                            # (*)
                             pass
                         else:
                             # we add the son the to comp
-                            comp.add_point(cur_point)
+                            if father == comp.points[0]:  # be careful
+                                # if there's only one point in the Comp,
+                                #   we get position from the point's x coord
+                                if len(comp.points) == 1:
+                                    if cur_point[0] > father[0]:  # to the rt
+                                        comp.add_point(cur_point, 0)
+                                    else:  # >=2, clearly to the left
+                                        comp.add_point(cur_point, -1)
+                                else:
+                                    comp.add_point(cur_point, 0)  # to the rt
+                            else:
+                                comp.add_point(cur_point, -1)  # to the lt
                         break
-        # no matter what, we print the components
+        # no matter what, we print the components ----> for testing
         for comp in comps:
             print('Comp {}:'.format(comps.index(comp)))
-            dictionary = {point: types[point] for point in comp.points}
-            dictionary.update([('minmax', comp.minmax_order), ('state', comp.state)])
+            dictionary = {'points': [(point, types[point]) for point in comp.points]}
+            dictionary.update([
+                ('margin', comp.get_margins()),
+                ('state', comp.state)
+                ])
             pprint(dictionary)
-
 
 
 def triangulate(y_polygon):
