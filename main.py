@@ -72,6 +72,7 @@ def start(event):
     print('you pressed "Start"')
     # finish the polygon:
     tad.goto(polygon[0][0], polygon[0][1])
+    print(polygon)
     # Tad. Go sit
     tad.penup()
     tad.shapesize(3, 3)
