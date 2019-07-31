@@ -310,8 +310,20 @@ def y_decompose(polygon):
                     if comp.points[0] == father or comp.points[-1] == father:
                         # the function automatically checks for previous merges
                         if comp.state[0] == 'merge':
-                            # (*)
-                            pass
+                            merge_point = comp.state[1]
+                            merge_index = comp.index(merge_point)
+                            # we see which ear do we clip :D (ear-clipping)
+                            if cur_point[0] < merge_point[0]:  # to the left
+                                polys.append(
+                                    comp.points[merge_index:] + [cur_point]
+                                    )
+                                comp.points = comp.points[:merge_index + 1]
+                                comp.points.extend([cur_point])
+                            else:
+                                polys.append(
+                                    comp.points[:merge_index + 1] + [cur_point]  # end-effect says the end can be at the end or at the beginning of its poly
+                                    )
+                                comp.points = [cur_point] + comp.points[merge_index:]
                         else:
                             # we add the son the to comp
                             if father == comp.points[0]:  # be careful
