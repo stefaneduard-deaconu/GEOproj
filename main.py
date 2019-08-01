@@ -70,6 +70,8 @@ def start(event):
     The target is to triangulate the polygon
     """
     print('you pressed "Start"')
+    print(polygon)
+    quit()
     # finish the polygon:
     tad.goto(polygon[0][0], polygon[0][1])
     print(polygon)
