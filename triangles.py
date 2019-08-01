@@ -16,9 +16,10 @@ polygons = [
     [(0, 200), (200, 0), (0, -200), (-200, 0)],
     [(0, 200), (200, -200), (0, 0), (-200, -200)],
     [(-239.0, 68.0), (-123.0, 247.0), (-96.0, 98.0), (-157.0, 92.0), (152.0, 15.0), (163.0, 249.0), (-6.0, 155.0), (124.0, 288.0), (370.0, 204.0), (251.0, -69.0), (254.0, 129.0), (70.0, -168.0), (-269.0, -91.0), (-10.0, 1.0), (-303.0, -10.0), (-320.0, 200.0)],
+    [(19.0, 247.0), (-112.0, 113.0), (-162.0, 223.0), (-231.0, -35.0), (-307.0, 76.0), (-242.0, -207.0), (-14.0, -17.0), (-73.0, 51.0)],
     [(-197.0, 144.0), (-62.0, 239.0), (-58.0, 71.0), (-125.0, 134.0), (-95.0, -49.0), (190.0, 216.0), (34.0, 225.0), (24.0, 126.0), (-7.0, 250.0), (290.0, 265.0), (242.0, 199.0), (412.0, 242.0), (224.0, 79.0), (328.0, 80.0), (203.0, -60.0), (173.0, 93.0), (221.0, 139.0), (42.0, 33.0), (147.0, 13.0), (-25.0, -47.0), (-112.0, -108.0), (-171.0, 66.0), (-280.0, 41.0), (-343.0, -60.0), (-248.0, -141.0), (-215.0, -43.0), (-283.0, -17.0), (-216.0, 3.0), (-175.0, -77.0), (-205.0, -139.0), (-127.0, -136.0), (-242.0, -179.0), (-135.0, -236.0), (38.0, -103.0), (148.0, -214.0), (-58.0, -233.0), (-17.0, -189.0), (-164.0, -268.0), (-318.0, -161.0), (-360.0, -244.0), (-362.0, 135.0), (-295.0, 107.0), (-270.0, 253.0), (-241.0, 198.0), (-123.0, 237.0), (-251.0, 167.0), (-211.0, 79.0), (-160.0, 145.0)]
 ]
-which_one = 8
+which_one = 9
 tad = turtle.Turtle()
 tad.speed(5)
 # using the turtle to first draw the 'coordinate axes' :D
@@ -209,6 +210,8 @@ def y_decompose(polygon):
                 print('MERGE:')
                 print(polygon)
                 print('Fathers ----> {} {}'.format(left_father, right_father))
+                line(cur_point, left_father, tad, 'green')
+                line(cur_point, right_father, tad, 'green')
                 for comp_index, comp in enumerate(comps):
                     if left_father in [comp.points[0], comp.points[-1]]:  # beginning of poly
                         left_index = comp_index
@@ -277,13 +280,14 @@ def y_decompose(polygon):
                     Comp(points, ('merge', cur_point))
                     )
             elif types[cur_point] == 'split':  # the last case is a 'middle', so we only check if we can solve
-                # we find the component that splits.
+                # we find the component that splits. 
                 # there are two cases. Either a component with multiple points
                 #   or a component with one point that has the upcoming margins
                 #   (from get_margins) so as to enclose the 'split'
                 # just a test
-                # if len([comp for comp in comps if comp.get_margins()[0][0] <= cur_point[1] and comp.get_margins()[1][0] >= cur_point[1]]) != 1:
-                #     raise ValueError('THERE\'S A PROBLEM! We found {} enclosing Comp.'.format(len([comp for comp in comps if comp.get_margins()[0] <= cur_point and comp.get_margins()[1] >= cur_point])))
+                if len([comp for comp in comps if comp.get_margins()[0][0] <= cur_point[1] and comp.get_margins()[1][0] >= cur_point[1]]) != 1:
+                    tad.screen.mainloop()
+                    raise ValueError('THERE\'S A PROBLEM! We found {} enclosing Comp.'.format(len([comp for comp in comps if comp.get_margins()[0][0] <= cur_point[1] and comp.get_margins()[1][0] >= cur_point[1]])))
                 # (*) if 0, then there must be
                 # We find the enclosing component:
                 for comp in comps:
@@ -399,16 +403,19 @@ def y_decompose(polygon):
                     if case_1 or case_2:
                         # the function automatically checks for previous merges
                         if comp.state[0] == 'merge':
+                            print('merge from a middle')
                             merge_point = comp.state[1]
                             merge_index = comp.points.index(merge_point)
                             # we see which ear do we clip :D (ear-clipping)
-                            if cur_point[0] < merge_point[0]:  # to the left
+                            if downwards:  # same sense as the polygon
+                                print('left')
                                 polys.append(
                                     comp.points[merge_index:] + [cur_point]
                                     )
                                 comp.points = comp.points[:merge_index + 1]
                                 comp.points.extend([cur_point])
                             else:
+                                print('right')
                                 polys.append(
                                     comp.points[:merge_index + 1] + [cur_point]  # end-effect says the end can be at the end or at the beginning of its poly
                                     )
