@@ -4,6 +4,68 @@ Here we have two utility functions, for y-decomposition (decomposing a
   polygon.
 Plus the main() function, used throughout the project for testing:D
 """
+import ctypes
+from pprint import pprint
+import turtle
+polygons = [
+    [(-124.0, 181.0), (-62.0, 103.0), (81.0, 181.0), (129.0, 22.0), (-37.0, 33.0), (80.0, -149.0), (-154.0, -166.0), (-203.0, 212.0), (-139.0, 62.0), (-37.0, 56.0), (-177.0, 205.0), (-48.0, 254.0)],
+    [(115.0, -59.0), (142.0, 136.0), (9.0, 85.0), (-95.0, 176.0), (-82.0, -152.0), (71.0, 30.0)],
+    [(-176.0, 140.0), (-186.0, 98.0), (55.0, 186.0), (14.0, 6.0), (184.0, 81.0), (234.0, -118.0), (-92.0, -116.0), (-31.0, 80.0), (-228.0, -149.0), (-245.0, 197.0)],
+    [(-308.0, 66.0), (-247.0, 200.0), (-193.0, 22.0), (-162.0, 80.0), (-189.0, 128.0), (-107.0, 205.0), (-94.0, 86.0), (-120.0, 39.0), (-74.0, -36.0), (-38.0, 52.0), (-56.0, 108.0), (347.0, 212.0), (23.0, 37.0), (39.0, 13.0), (75.0, 44.0), (-96.0, -267.0)],
+    [(-289.0, 194.0), (-182.0, 219.0), (24.0, 77.0), (117.0, 220.0), (162.0, 27.0), (307.0, 141.0), (215.0, -245.0), (88.0, 18.0), (-159.0, -208.0), (44.0, -141.0), (70.0, -263.0), (-239.0, -247.0), (-334.0, 153.0), (-259.0, 63.0), (-64.0, 51.0), (-226.0, -18.0), (-230.0, -114.0), (-6.0, 52.0)],
+    [(-200, -200), (-200, 200), (200, 200), (200, -200)],
+    [(0, 200), (200, 0), (0, -200), (-200, 0)],
+    [(0, 200), (200, -200), (0, 0), (-200, -200)]
+]
+which_one = 0
+tad = turtle.Turtle()
+tad.speed(5)
+# using the turtle to first draw the 'coordinate axes' :D
+
+
+def screen_dimensions():
+    # A simple function to compute the screen's dimensions.
+    user32 = ctypes.windll.user32
+    return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+
+screen_width, screen_height = screen_dimensions()
+window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
+
+
+def line(A, B, tad, color):
+    x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
+    tads_position = tad.position()
+    tads_color = tad.color()
+    tad.color(color, color)
+    tad.penup()
+    tad.goto(x0, y0)
+    tad.pendown()
+    tad.goto(x1, y1)
+    tad.penup()
+    tad.goto(tads_position)
+    tad.color(tads_color[0], tads_color[1])
+
+
+line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0), tad, 'lime')
+tad.setheading(90)
+line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2), tad, 'lime')
+
+
+def draw_poly(polygon, tad, color='lime'):
+    tad.penup()
+    tad.goto(polygon[0])
+    tads_color = tad.color()
+    tad.color(color, color)
+    tad.pendown()
+    for p in polygon + [polygon[0]]:
+        tad.goto(p[0], p[1])
+    tad.color(tads_color[0], tads_color[1])
+    tad.penup()
+    tad.goto(0, 0)
+
+
+draw_poly(polygons[which_one], tad, color='black')
 
 
 def y_decompose(polygon):
@@ -42,12 +104,7 @@ def y_decompose(polygon):
         polygon = polygon[-1::-1]
 
     def get_types(pts):
-        # print('\n', [pts[-1]])
-        # print('\n', pts)
-        # print('\n', [pts[0]])
         aux = [pts[-1]] + [p for p in pts] + [pts[0]]
-        # print('\n', aux)
-        #
         types = {}
         for A, B, C in zip(aux, aux[1::], aux[2::]):
             if sign(B[1] - A[1]) != sign(B[1] - C[1]):
@@ -66,13 +123,10 @@ def y_decompose(polygon):
 
     def get_fathers(pts):
         """
-
         We practically return the neighbor points.
-
         In the pts, the points are the one of a polygon, so for each index
             the neighbors are the left and right indexed items.
         Only that we only catalogue as 'father' the items with a greate y-coord
-
         """
         fathers = {}
         for p in pts:
@@ -89,13 +143,10 @@ def y_decompose(polygon):
                     fathers[p] = [right]
         return fathers
 
-    from pprint import pprint
     types = get_types(polygon)
     fathers = get_fathers(polygon)  # we don't check the trig. order here :D
     # print({point: types[point] for point in polygon})
-    # print(fathers)
-    pprint([types[point] for point in polygon])
-    pprint(fathers)
+
     y_ordered_points = sorted(polygon, key=lambda A: -A[1])
     x_order = {
         point: index for index, point in enumerate(sorted(polygon, key=lambda A: A[0]))
@@ -126,11 +177,6 @@ def y_decompose(polygon):
                     polygon_index = polygon.index(self.points[1])
                 return (polygon[(polygon_index + 1) % len(polygon)], polygon[polygon_index - 1])
 
-        def turn_to_poly(self):  # TODO
-            # we know that every point must have a father, except for the sole
-            #   'start' one
-            pass
-
         def add_point(self, point, position):
             # we add the point so that self.points keep the trig. order
             if position == 0:
@@ -141,10 +187,10 @@ def y_decompose(polygon):
                 print("VALUE ERROR - the side should be 0 or -1")
     comps = []
     polys = []  # we can get the polys with a function inside Comp :D
+    edges = []  # edges are the lines we add while decomposing
     for cur_index, (x, y) in enumerate(y_ordered_points):
         cur_point = (x, y)
 
-        from pprint import pprint
         print('-' * 50)
         print(cur_point, '\'{}\', x_order={}'.format(types[cur_point], x_order[cur_point]), '----> point {}'.format(cur_index))
 
@@ -155,12 +201,18 @@ def y_decompose(polygon):
         else:
             if types[cur_point] == 'merge':
                 left_index, right_index = None, None
-                left_father, right_father = fathers[cur_point]
-
+                # the fathers are taken as to keep trig order:
+                this_index = polygon.index(cur_point)
+                left_father = polygon[(this_index + 1) % len(polygon)]
+                right_father = polygon[this_index - 1]
+                print('MERGE:')
+                print(polygon)
+                print('Fathers ----> {} {}'.format(left_father, right_father))
                 for comp_index, comp in enumerate(comps):
-                    if left_father == comp.points[0]:  # beginning of poly
+                    if left_father in [comp.points[0], comp.points[-1]]:  # beginning of poly
                         left_index = comp_index
-                    elif right_father == comp.points[-1]:  # ending of poly
+                    # could be an elif, if desired:
+                    elif right_father in [comp.points[0], comp.points[-1]]:  # ending of poly
                         right_index = comp_index
                 # # testing:
                 # print('FATHERS are as it comes:', fathers[cur_point])
@@ -199,6 +251,8 @@ def y_decompose(polygon):
                     types[left_comp.state[1]] = 'leftturn'  # (*is it right?)
                     # delete the points from the poly's middle part
                     # print('POLYGON ----> ', polys[-1])
+                    edges.extend([(points[left_points_index + 1], points[left_merge_index - 2])])
+                    line(edges[-1][0], edges[-1][1], tad, 'red')
                     for i in range(left_points_index, left_merge_index):
                         points.pop(left_points_index)
                 print('RIGHT')
@@ -214,6 +268,8 @@ def y_decompose(polygon):
                     types[right_comp.state[1]] = 'rightturn'  # (*is it right?)
                     # delete the points from the poly's middle part
                     # print('POLYGON ----> ', polys[-1])
+                    edges.extend([(points[right_merge_index], points[left_points_index - 1])])
+                    line(edges[-1][0], edges[-1][1], tad, 'red')
                     for i in range(right_merge_index + 1, left_points_index - 1):
                         points.pop(right_merge_index + 1)
                 comps.append(
@@ -244,6 +300,10 @@ def y_decompose(polygon):
                                 merge_index = points.index(merge_point)
                                 #   we create and add a new comp:
                                 new_comp_points = comp.points[:merge_index + 1]
+                                # we add the edge:
+                                edges.extend([(new_comp_points[-1], cur_point)])
+                                line(edges[-1][0], edges[-1][1], tad, 'red')
+                                #
                                 new_comp_points.extend([cur_point])
                                 comps.append(
                                     Comp(new_comp_points)
@@ -264,6 +324,9 @@ def y_decompose(polygon):
                                 new_comp_points = [cur_point, other_point]
                             else:
                                 new_comp_points = [other_point, cur_point]
+                            # we add the extra edge:
+                            edges.extend([tuple(new_comp_points)])
+                            line(edges[-1][0], edges[-1][1], tad, 'red')
                             comps.append(
                                 Comp(new_comp_points)
                                 )
@@ -273,6 +336,10 @@ def y_decompose(polygon):
                         else:
                             # there is only a start we turn into 'two' starts:D
                             #   we create the new comp:
+                            # we add the extra edge:
+                            edges.extend([(comp.points[-1], cur_point)])
+                            line(edges[-1][0], edges[-1][1], tad, 'red')
+                            # and then we finish the comp
                             new_comp_points = comp.points + [cur_point]
                             comps.append(
                                 Comp(new_comp_points)
@@ -301,6 +368,9 @@ def y_decompose(polygon):
                             polys.append(
                                 comp.points[:merge_index + 1] + [cur_point]
                                 )
+                            # we add the edge:
+                            edges.extend([(comp.points[merge_index], cur_point)])
+                            line(edges[-1][0], edges[-1][1], tad, 'red')
                         else:
                             # if there's no state, we just add the cur_point
                             #   to the comp's points to get the final polygon
@@ -320,10 +390,11 @@ def y_decompose(polygon):
                     downwards = True
                 elif father == polygon[(polygon_index + 1) % len(polygon)]:
                     downwards = False
-                print('middle; point and father are:', cur_point, father)
+                print('middle, father ----> {}, {}'.format(cur_point, father))
+                print(downwards)
                 for comp in comps:
-                    case_1 = comp.points[0] == father and downwards
-                    case_2 = comp.points[-1] == father and not downwards
+                    case_1 = comp.points[0] == father and not downwards
+                    case_2 = comp.points[-1] == father and downwards
                     if case_1 or case_2:
                         # the function automatically checks for previous merges
                         if comp.state[0] == 'merge':
@@ -341,6 +412,9 @@ def y_decompose(polygon):
                                     comp.points[:merge_index + 1] + [cur_point]  # end-effect says the end can be at the end or at the beginning of its poly
                                     )
                                 comp.points = [cur_point] + comp.points[merge_index:]
+                            # and we add the edge:
+                            edges.extend([(cur_point, merge_point)])
+                            line(edges[-1][0], edges[-1][1], tad, 'red')
                         else:
                             # we add the son the to comp
                             if father == comp.points[0]:  # be careful
@@ -356,17 +430,18 @@ def y_decompose(polygon):
                             else:
                                 comp.add_point(cur_point, -1)  # to the lt
                         break
-            # no matter what, we print the components ----> for testing
-            print("COMPS")
-            for comp in comps:
-                print('Comp {}:'.format(comps.index(comp)))
-                dictionary = {'points': [(point, types[point]) for point in comp.points]}
-                dictionary.update([
-                    ('margin', comp.get_margins()),
-                    ('state', comp.state)
-                    ])
-                pprint(dictionary)
-            pprint(polys)
+        # no matter what, we print the components ----> for testing
+        print("COMPS:")
+        for comp in comps:
+            print('Comp {}:'.format(comps.index(comp)))
+            dictionary = {'points': [(point, types[point]) for point in comp.points]}
+            dictionary.update([
+                ('margin', comp.get_margins()),
+                ('state', comp.state)
+                ])
+            pprint(dictionary)
+        pprint(polys)
+        # line(edges[-1][0], edges[-1][1], tad, 'red')
     return polys
 
 
@@ -387,63 +462,7 @@ def sign(num):
 
 
 def main():
-    import turtle
-    import ctypes
-
-    def screen_dimensions():
-        # A simple function to compute the screen's dimensions.
-        user32 = ctypes.windll.user32
-        return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-
-    def line(A, B, tad, color):
-        x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
-        tads_position = tad.position()
-        tads_color = tad.color()
-        tad.color(color, color)
-        tad.penup()
-        tad.goto(x0, y0)
-        tad.pendown()
-        tad.goto(x1, y1)
-        tad.penup()
-        tad.goto(tads_position)
-        tad.color(tads_color[0], tads_color[1])
-
-    def draw_poly(polygon, tad, color='lime'):
-        tad.penup()
-        tad.goto(polygon[0])
-        tads_color = tad.color()
-        tad.color(color, color)
-        tad.pendown()
-        for p in polygon + [polygon[0]]:
-            tad.goto(p[0], p[1])
-        tad.color(tads_color[0], tads_color[1])
-        tad.penup()
-        tad.goto(0, 0)
-    polygons = [
-        [(-124.0, 181.0), (-62.0, 103.0), (81.0, 181.0), (129.0, 22.0), (-37.0, 33.0), (80.0, -149.0), (-154.0, -166.0), (-203.0, 212.0), (-139.0, 62.0), (-37.0, 56.0), (-177.0, 205.0), (-48.0, 254.0)],
-        [(115.0, -59.0), (142.0, 136.0), (9.0, 85.0), (-95.0, 176.0), (-82.0, -152.0), (71.0, 30.0)],
-        [(-176.0, 140.0), (-186.0, 98.0), (55.0, 186.0), (14.0, 6.0), (184.0, 81.0), (234.0, -118.0), (-92.0, -116.0), (-31.0, 80.0), (-228.0, -149.0), (-245.0, 197.0)],
-        [(-308.0, 66.0), (-247.0, 200.0), (-193.0, 22.0), (-162.0, 80.0), (-189.0, 128.0), (-107.0, 205.0), (-94.0, 86.0), (-120.0, 39.0), (-74.0, -36.0), (-38.0, 52.0), (-56.0, 108.0), (347.0, 212.0), (23.0, 37.0), (39.0, 13.0), (75.0, 44.0), (-96.0, -267.0)],
-        [(-289.0, 194.0), (-182.0, 219.0), (24.0, 77.0), (117.0, 220.0), (162.0, 27.0), (307.0, 141.0), (215.0, -245.0), (88.0, 18.0), (-159.0, -208.0), (44.0, -141.0), (70.0, -263.0), (-239.0, -247.0), (-334.0, 153.0), (-259.0, 63.0), (-64.0, 51.0), (-226.0, -18.0), (-230.0, -114.0), (-6.0, 52.0)],
-        [(-200, -200), (-200, 200), (200, 200), (200, -200)],
-        [(0, 200), (200, 0), (0, -200), (-200, 0)],
-        [(0, 200), (200, -200), (0, 0), (-200, -200)]
-    ]
-
-    from pprint import pprint
-    which_one = 4
     for polygon in polygons[which_one:which_one + 1]:
-        tad = turtle.Turtle()
-        tad.speed(3)
-        # using the turtle to first draw the 'coordinate axes' :D
-        screen_width, screen_height = screen_dimensions()
-        window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
-        line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0), tad, 'lime')
-        tad.setheading(90)
-        line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2), tad, 'lime')
-        # draw_poly(polygon, tad, color='red')
-        # tad.screen.mainloop()
-        # quit()
         polys = y_decompose(polygon)
         print()
         print('*' * len('* In the end we\'ve got: *'))
@@ -453,8 +472,9 @@ def main():
         pprint(polys)
         # drawing them:
         # draw the y-monotone polys:
-        for poly in polys:
-            draw_poly(poly, tad, color='black')
+        # draw_poly(polygon, tad, color='red')
+        # for poly in polys:
+        #     draw_poly(poly, tad, color='black')
         tad.screen.mainloop()
 
 
