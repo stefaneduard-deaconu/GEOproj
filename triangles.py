@@ -21,7 +21,7 @@ polygons = [
 ]
 which_one = 9
 tad = turtle.Turtle()
-tad.speed(5)
+tad.speed(6)
 # using the turtle to first draw the 'coordinate axes' :D
 
 
@@ -68,7 +68,7 @@ def draw_poly(polygon, tad, color='lime'):
 
 
 draw_poly(polygons[which_one], tad, color='black')
-
+tad.pensize(2)
 
 def y_decompose(polygon):
     def sign(num):
@@ -169,15 +169,20 @@ def y_decompose(polygon):
             #     print('NOT A LIST - problem with a Comp initialization')
 
         def get_margins(self):
-            if len(self.points) >= 3:
+            # remember there must be at least one point
+            if len(self.points) > 1:  # if there are multiple points, then
                 return (self.points[-1], self.points[0])
             else:
-                polygon_index = None
-                if types[self.points[0]] == 'start':  # we get the start
-                    polygon_index = polygon.index(self.points[0])
-                else:
-                    polygon_index = polygon.index(self.points[1])
-                return (polygon[(polygon_index + 1) % len(polygon)], polygon[polygon_index - 1])
+                # polygon_index = None
+                # if types[self.points[0]] == 'start':  # we get the start
+                #     polygon_index = polygon.index(self.points[0])
+                # else:
+                #     polygon_index = polygon.index(self.points[1])
+                polygon_index = polygon.index(self.points[0])
+                return (
+                    polygon[(polygon_index + 1) % len(polygon)],
+                    polygon[polygon_index - 1]
+                    )
 
         def add_point(self, point, position):
             # we add the point so that self.points keep the trig. order
@@ -195,6 +200,8 @@ def y_decompose(polygon):
 
         print('-' * 50)
         print(cur_point, '\'{}\', x_order={}'.format(types[cur_point], x_order[cur_point]), '----> point {}'.format(cur_index))
+        # if cur_index == 25:
+        #     tad.screen.mainloop()
 
         if types[cur_point] == 'start':
             comps.append(
@@ -210,8 +217,8 @@ def y_decompose(polygon):
                 print('MERGE:')
                 print(polygon)
                 print('Fathers ----> {} {}'.format(left_father, right_father))
-                line(cur_point, left_father, tad, 'green')
-                line(cur_point, right_father, tad, 'green')
+                # line(cur_point, left_father, tad, 'green')
+                # line(cur_point, right_father, tad, 'green')
                 for comp_index, comp in enumerate(comps):
                     if left_father in [comp.points[0], comp.points[-1]]:  # beginning of poly
                         left_index = comp_index
@@ -280,19 +287,31 @@ def y_decompose(polygon):
                     Comp(points, ('merge', cur_point))
                     )
             elif types[cur_point] == 'split':  # the last case is a 'middle', so we only check if we can solve
-                # we find the component that splits. 
+                # we find the component that splits.
                 # there are two cases. Either a component with multiple points
                 #   or a component with one point that has the upcoming margins
                 #   (from get_margins) so as to enclose the 'split'
                 # just a test
-                if len([comp for comp in comps if comp.get_margins()[0][0] <= cur_point[1] and comp.get_margins()[1][0] >= cur_point[1]]) != 1:
-                    tad.screen.mainloop()
-                    raise ValueError('THERE\'S A PROBLEM! We found {} enclosing Comp.'.format(len([comp for comp in comps if comp.get_margins()[0][0] <= cur_point[1] and comp.get_margins()[1][0] >= cur_point[1]])))
                 # (*) if 0, then there must be
                 # We find the enclosing component:
                 for comp in comps:
                     margin_left, margin_right = comp.get_margins()
-                    if margin_left[0] <= cur_point[0] and cur_point[0] <= margin_right[0]:
+                    # the true margins are the first points below cur_point
+                    y_level = cur_point[1]
+                    #   we find the margin to the left that does so
+                    index_left = polygon.index(margin_left)
+                    while polygon[index_left][1] > y_level:
+                        index_left = (index_left + 1) % len(polygon)
+                    #   we find the margin to the right that does so
+                    index_right = polygon.index(margin_right)
+                    while polygon[index_right][1] > y_level:
+                        index_right -= 1  # it may get negative,
+                        # but Python handles it for us
+                    # getting the true margins:
+                    true_margin_left = polygon[index_left]
+                    true_margin_right = polygon[index_right]
+                    if true_margin_left[0] <= cur_point[0] and cur_point[0] <= true_margin_right[0]:
+                        print("SPLIT ----> comp number {}".format(comps.index(comp)))
                         # we check if the Comp has multiple points
                         # (*if there's a merge, it's also the lowest point :D)
                         # (*we don't use fathers anymore as a binary tree,
@@ -321,14 +340,10 @@ def y_decompose(polygon):
                             # otherwise:
                             # we use the rightmost point to split the Comp
                             # doesn't solve the 'merge'. We treat is separately
-                            other_point = comp.points[0]  # rightmost point
+                            other_point = comp.points[0]  # "right"most point
                             # now we split into two comps
-                            new_comp_points = None
                             #   we create the poly for the new one
-                            if other_point[0] < cur_point[0]:
-                                new_comp_points = [cur_point, other_point]
-                            else:
-                                new_comp_points = [other_point, cur_point]
+                            new_comp_points = [other_point, cur_point]
                             # we add the extra edge:
                             edges.extend([tuple(new_comp_points)])
                             line(edges[-1][0], edges[-1][1], tad, 'red')
@@ -342,7 +357,7 @@ def y_decompose(polygon):
                             # there is only a start we turn into 'two' starts:D
                             #   we create the new comp:
                             # we add the extra edge:
-                            edges.extend([(comp.points[-1], cur_point)])
+                            edges.extend([(comp.points[0], cur_point)])
                             line(edges[-1][0], edges[-1][1], tad, 'red')
                             # and then we finish the comp
                             new_comp_points = comp.points + [cur_point]
@@ -357,12 +372,19 @@ def y_decompose(polygon):
                 #   if 'merging' we just turn the 'end' into two ends => 2 poly
                 #   otherwise we just get a poly (comp.points)
                 # First we find the corresponding component (there must be!)
+                #   but it gets tricky. its order must respect not the one of the polygon (because there can be a 'leap' somewhere, cause by a split or such stuff)
+                #    We solve this by finding not the pair to fit the end,
+                #       but a component with a margin as to fit the order
                 for index, comp in enumerate(comps):
                     # print(comp.points)
                     print('END')
-                    print(fathers[cur_point])
-                    print(comp.get_margins())
-                    if comp.get_margins() == tuple(fathers[cur_point]):  # simple
+                    # we first find the comp:
+                    # we check if the upcoming point for the comp, in the polygon's order,
+                    #   is actually our 'end'
+                    upcoming_point_index = polygon.index(comp.points[-1]) + 1
+                    upcoming_point_index %= len(polygon)
+                    upcoming_point = polygon[upcoming_point_index]
+                    if upcoming_point == cur_point:
                         if comp.state[0] == 'merge':
                             # if there's a 'merge' state, we create two polys:
                             merge_point = comp.state[1]
@@ -483,8 +505,9 @@ def main():
         # drawing them:
         # draw the y-monotone polys:
         # draw_poly(polygon, tad, color='red')
-        # for poly in polys:
-        #     draw_poly(poly, tad, color='black')
+        tad.pensize(2)
+        for poly in polys:
+            draw_poly(poly, tad, color='blue')
         tad.screen.mainloop()
 
 
