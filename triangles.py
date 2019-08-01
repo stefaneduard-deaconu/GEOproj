@@ -18,23 +18,29 @@ def y_decompose(polygon):
     def trig_order(a, b, c):
         res = a[0] * b[1] + b[0] * c[1] + c[0] * a[1]
         res -= c[0] * b[1] + b[0] * a[1] + a[0] * c[1]
-        if sign(res) == -1:
+        if sign(res) == 1:
             return 'rightturn'
-        else:
+        elif sign(res) == -1:
             return 'leftturn'
+        else:
+            raise ValueError('You have three consecutive points that form a line!!!')
+            # we could solve this issue here, by just eliminating the middle one :D
 
-    def reverse_trig_order(polygon):
+    def is_trig_order(polygon):
         # function to test if the polygon's point order is in (app.) trig order
         index = polygon.index((max(polygon, key=lambda A: A[1])))
         A, B = polygon[index - 1], polygon[index]
         C = polygon[(index + 1) % len(polygon)]
+        print(trig_order(A, B, C))
         if trig_order(A, B, C) == 'leftturn':
             return True
         else:
             return False
 
-    if (reverse_trig_order(polygon)):
+    print(polygon)
+    if not is_trig_order(polygon):
         polygon = polygon[-len(polygon):]
+    print(polygon)
 
     def get_types(pts):
         # print('\n', [pts[-1]])
@@ -47,12 +53,12 @@ def y_decompose(polygon):
         for A, B, C in zip(aux, aux[1::], aux[2::]):
             if sign(B[1] - A[1]) != sign(B[1] - C[1]):
                 types.update(dict({B: trig_order(A, B, C)}))
-            elif trig_order(A, B, C) == 'rightturn':  # start or end
+            elif trig_order(A, B, C) == 'leftturn':  # start or end
                 if sign(B[1] - A[1]) == 1:  # start or end
                     types.update(dict({B: 'start'}))  # start
                 else:
                     types.update(dict({B: 'end'}))  # end
-            else:  # split or merge ----> 'leftturn'
+            else:  # split or merge ----> 'leftturn', otherwise trig_order raises ValueError
                 if sign(B[1] - A[1]) == 1:  # split or merge
                     types.update(dict({B: 'split'}))  # split
                 else:
@@ -84,11 +90,13 @@ def y_decompose(polygon):
                     fathers[p] = [right]
         return fathers
 
-    # from pprint import pprint
+    from pprint import pprint
     types = get_types(polygon)
     fathers = get_fathers(polygon)  # we don't check the trig. order here :D
-    # pprint(types)
-    # pprint(fathers)
+    # print({point: types[point] for point in polygon})
+    # print(fathers)
+    pprint([types[point] for point in polygon])
+    pprint(fathers)
     y_ordered_points = sorted(polygon, key=lambda A: -A[1])
     x_order = {
         point: index for index, point in enumerate(sorted(polygon, key=lambda A: A[0]))
@@ -193,7 +201,7 @@ def y_decompose(polygon):
                     # delete the points from the poly's middle part
                     # print('POLYGON ----> ', polys[-1])
                     for i in range(left_points_index, left_merge_index):
-                        print(points.pop(left_points_index))
+                        points.pop(left_points_index)
                 print('RIGHT')
                 if (right_comp.state[0] == 'merge'):
                     # find the position of this Comp's merge
@@ -208,7 +216,7 @@ def y_decompose(polygon):
                     # delete the points from the poly's middle part
                     # print('POLYGON ----> ', polys[-1])
                     for i in range(right_merge_index + 1, left_points_index - 1):
-                        print(points.pop(right_merge_index + 1))
+                        points.pop(right_merge_index + 1)
                 comps.append(
                     Comp(points, ('merge', cur_point))
                     )
@@ -218,8 +226,9 @@ def y_decompose(polygon):
                 #   or a component with one point that has the upcoming margins
                 #   (from get_margins) so as to enclose the 'split'
                 # just a test
-                if len([comp for comp in comps if comp.get_margins()[0] <= cur_point and comp.get_margins()[1] >= cur_point]) != 1:
-                    raise ValueError('THERE\'S A PROBLEM! We found more than one enclosing Comp.')
+                # if len([comp for comp in comps if comp.get_margins()[0][0] <= cur_point[1] and comp.get_margins()[1][0] >= cur_point[1]]) != 1:
+                #     raise ValueError('THERE\'S A PROBLEM! We found {} enclosing Comp.'.format(len([comp for comp in comps if comp.get_margins()[0] <= cur_point and comp.get_margins()[1] >= cur_point])))
+                # (*) if 0, then there must be
                 # We find the enclosing component:
                 for comp in comps:
                     margin_left, margin_right = comp.get_margins()
@@ -310,7 +319,7 @@ def y_decompose(polygon):
                 downwards = None
                 if father == polygon[polygon_index - 1]:
                     downwards = True
-                elif father == polygon[polygon_index + 1]:
+                elif father == polygon[(polygon_index + 1) % len(polygon)]:
                     downwards = False
                 print('middle; point and father are:', cur_point, father)
                 for comp in comps:
@@ -348,16 +357,17 @@ def y_decompose(polygon):
                             else:
                                 comp.add_point(cur_point, -1)  # to the lt
                         break
-        # no matter what, we print the components ----> for testing
-        for comp in comps:
-            print('Comp {}:'.format(comps.index(comp)))
-            dictionary = {'points': [(point, types[point]) for point in comp.points]}
-            dictionary.update([
-                ('margin', comp.get_margins()),
-                ('state', comp.state)
-                ])
-            pprint(dictionary)
-        pprint(polys)
+            # no matter what, we print the components ----> for testing
+            print("COMPS")
+            for comp in comps:
+                print('Comp {}:'.format(comps.index(comp)))
+                dictionary = {'points': [(point, types[point]) for point in comp.points]}
+                dictionary.update([
+                    ('margin', comp.get_margins()),
+                    ('state', comp.state)
+                    ])
+                pprint(dictionary)
+            pprint(polys)
     return polys
 
 
@@ -378,6 +388,38 @@ def sign(num):
 
 
 def main():
+    import turtle
+    import ctypes
+
+    def screen_dimensions():
+        # A simple function to compute the screen's dimensions.
+        user32 = ctypes.windll.user32
+        return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+    def line(A, B, tad, color):
+        x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
+        tads_position = tad.position()
+        tads_color = tad.color()
+        tad.color(color, color)
+        tad.penup()
+        tad.goto(x0, y0)
+        tad.pendown()
+        tad.goto(x1, y1)
+        tad.penup()
+        tad.goto(tads_position)
+        tad.color(tads_color[0], tads_color[1])
+
+    def draw_poly(polygon, tad, color='lime'):
+        tad.penup()
+        tad.goto(polygon[0])
+        tads_color = tad.color()
+        tad.color(color, color)
+        tad.pendown()
+        for p in polygon + [polygon[0]]:
+            tad.goto(p[0], p[1])
+        tad.color(tads_color[0], tads_color[1])
+        tad.penup()
+        tad.goto(0, 0)
     polygons = [
         [(-124.0, 181.0), (-62.0, 103.0), (81.0, 181.0), (129.0, 22.0), (-37.0, 33.0), (80.0, -149.0), (-154.0, -166.0), (-203.0, 212.0), (-139.0, 62.0), (-37.0, 56.0), (-177.0, 205.0), (-48.0, 254.0)],
         [(115.0, -59.0), (142.0, 136.0), (9.0, 85.0), (-95.0, 176.0), (-82.0, -152.0), (71.0, 30.0)],
@@ -389,52 +431,32 @@ def main():
         [(0, 200), (200, -200), (0, 0), (-200, -200)]
     ]
 
-    def draw_poly(polygon):
-        def screen_dimensions():
-            # A simple function to compute the screen's dimensions.
-            import ctypes
-            user32 = ctypes.windll.user32
-            return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    from pprint import pprint
+    which_one = 4
+    for polygon in polygons[which_one:which_one + 1]:
+        tad = turtle.Turtle()
+        tad.speed(3)
+        # using the turtle to first draw the 'coordinate axes' :D
         screen_width, screen_height = screen_dimensions()
         window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
-        import turtle
-        tad = turtle.Turtle()
-
-        def line(A, B, tad, color):
-            x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
-            tads_position = tad.position()
-            tads_color = tad.color()
-            tad.color(color, color)
-            tad.penup()
-            tad.goto(x0, y0)
-            tad.pendown()
-            tad.goto(x1, y1)
-            tad.penup()
-            tad.goto(tads_position)
-            tad.color(tads_color[0], tads_color[1])
-        tad.penup()
-        tad.goto(polygon[0])
-        tad.pendown()
-        for p in polygon + [polygon[0]]:
-            tad.goto(p[0], p[1])
-        # using the turtle to first draw the 'coordinate axes' :D
         line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0), tad, 'lime')
         tad.setheading(90)
         line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2), tad, 'lime')
-        tad.color('lime', 'lime')
-        tad.goto(0, 0)
-        tad.screen.mainloop()
-
-    from pprint import pprint
-    for poly in polygons[2:3]:
-        draw_poly(poly)
-        polys = y_decompose(poly)
+        draw_poly(polygon, tad, color='red')
+        # tad.screen.mainloop()
+        # quit()
+        polys = y_decompose(polygon)
         print()
         print('*' * len('* In the end we\'ve got: *'))
         print('* In the end we\'ve got: *')
         print('*' * len('* In the end we\'ve got: *'))
         print()
         pprint(polys)
+        # drawing them:
+        # draw the y-monotone polys:
+        for poly in polys:
+            draw_poly(poly, tad, color='black')
+        tad.screen.mainloop()
 
 
 if __name__ == '__main__':
