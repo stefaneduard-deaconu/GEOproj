@@ -159,9 +159,9 @@ def y_decompose(polygon):
                 left_father, right_father = fathers[cur_point]
 
                 for comp_index, comp in enumerate(comps):
-                    if left_father in comp.points:  # right half
+                    if left_father == comp.points[0]:  # beginning of poly
                         left_index = comp_index
-                    elif right_father in comp.points:  # left half
+                    elif right_father == comp.points[-1]:  # ending of poly
                         right_index = comp_index
                 # # testing:
                 # print('FATHERS are as it comes:', fathers[cur_point])
