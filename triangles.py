@@ -19,28 +19,27 @@ def y_decompose(polygon):
         res = a[0] * b[1] + b[0] * c[1] + c[0] * a[1]
         res -= c[0] * b[1] + b[0] * a[1] + a[0] * c[1]
         if sign(res) == 1:
-            return 'rightturn'
-        elif sign(res) == -1:
             return 'leftturn'
+        elif sign(res) == -1:
+            return 'rightturn'
         else:
             raise ValueError('You have three consecutive points that form a line!!!')
             # we could solve this issue here, by just eliminating the middle one :D
 
-    def is_trig_order(polygon):
-        # function to test if the polygon's point order is in (app.) trig order
+    def trig_order_poly(polygon):
+        # function to test if the polygon's point order is in trig order
         index = polygon.index((max(polygon, key=lambda A: A[1])))
         A, B = polygon[index - 1], polygon[index]
         C = polygon[(index + 1) % len(polygon)]
-        print(trig_order(A, B, C))
+        print(A, B, C, trig_order(A, B, C))
         if trig_order(A, B, C) == 'leftturn':
             return True
         else:
             return False
 
-    print(polygon)
-    if not is_trig_order(polygon):
-        polygon = polygon[-len(polygon):]
-    print(polygon)
+    # print(trig_order((0, 0), (0, 1), (1, -1)))
+    if not trig_order_poly(polygon):
+        polygon = polygon[-1::-1]
 
     def get_types(pts):
         # print('\n', [pts[-1]])
@@ -442,7 +441,7 @@ def main():
         line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0), tad, 'lime')
         tad.setheading(90)
         line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2), tad, 'lime')
-        draw_poly(polygon, tad, color='red')
+        # draw_poly(polygon, tad, color='red')
         # tad.screen.mainloop()
         # quit()
         polys = y_decompose(polygon)
