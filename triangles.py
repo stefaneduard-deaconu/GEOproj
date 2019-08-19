@@ -21,7 +21,7 @@ polygons = [
 ]
 which_one = 9
 tad = turtle.Turtle()
-tad.speed(6)
+tad.speed(8)
 # using the turtle to first draw the 'coordinate axes' :D
 
 
@@ -478,7 +478,65 @@ def y_decompose(polygon):
 
 
 def triangulate(y_polygon):
-    pass
+
+    def sign(num):
+        if num < 0:
+            return -1
+        elif num > 0:
+            return 1
+        else:
+            return 0
+
+    def trig_order(a, b, c):
+        res = a[0] * b[1] + b[0] * c[1] + c[0] * a[1]
+        res -= c[0] * b[1] + b[0] * a[1] + a[0] * c[1]
+        if sign(res) == 1:
+            return 'leftturn'
+        elif sign(res) == -1:
+            return 'rightturn'
+        else:
+            raise ValueError('You have three consecutive points that form a line!!!')
+            # we could solve this issue here, by just eliminating the middle one :D
+
+    class TriangleQueue(object):
+        
+        def __init__(self, y_polygon_trig):
+            points = sorted(y_polygon_trig, key=lambda point: -point[1])[1:]
+            top_index, top = max(enumerate(y_polygon_trig), key=lambda point: point[1][1])
+            bot_index, bot = min(enumerate(y_polygon_trig), key=lambda point: point[1][1])
+            queue = points[0:2]
+            types = {top: 'top'}
+            # auxiliary, the len of the points
+            p_len = len(y_polygon_trig)
+            # getting the left part
+            index = (top_index + 1) % p_len
+            point = y_polygon_trig[index]
+            while(point != bot):
+                index = (index + 1) % p_len
+                point = y_polygon_trig[index]
+            # getting the right part
+            index = (bot_index + 1) % p_len
+            point = y_polygon_trig[index]
+            while(point != bot):
+                index = (index + 1) % p_len
+                point = y_polygon_trig[index]
+            # first turn:
+            last_turn = 'top'
+
+        # member functions that act as auxiliaries, for better code
+
+        def get_next_point(self):
+            # we set the next one into the queue, and we return it
+            pass
+        # the function we call after instantiating an object -> returns the
+        #   triangles
+
+        def get_triangles(self):
+            triangles = []
+            return triangles
+
+
+
 
 
 # for testing:
