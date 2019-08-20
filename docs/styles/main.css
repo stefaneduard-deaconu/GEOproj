@@ -16,13 +16,16 @@ html {
 
 #wrapper-with-image .content {
     width: calc(61.8% - 5%);
+    border-bottom: none;
     height: calc(calc(100% - 10%) - 30px);
     margin-left: 19.1%;
     margin-top: 2.5%;
-    z-index: 2;
     background-color: white;
     overflow-y: scroll;
     padding: 15px 2.5%;
+    /* for my colour */
+    border: 1px solid #49a9fc;
+    border-bottom: none;
 }
 
 #wrapper-with-image .content::-webkit-scrollbar { width: 0 !important }
@@ -30,10 +33,9 @@ html {
 #wrapper-with-image .content { -ms-overflow-style: none; }
 
 #wrapper-with-image .after-content {
-    position: relative;
     height: 15px;
     font-size: 10px;
-    width: calc(61.8% - 0%);
+    width: calc(61.8% + 2px);
     margin-left: 19.1%;
     padding-top: 5px;
     /* padding-left: 5%;
@@ -42,5 +44,7 @@ html {
     text-align: center;
     /* gradient */
     /* background: linear-gradient(120deg, black 20%, white 5%, black, black); */
-
+    /* for my colour */
+    /* border: 1px solid #49a9fc;
+    border-top: none; */
 }

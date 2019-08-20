@@ -14,7 +14,7 @@ window.onload = function(e) {
         // console.log(millis)
         millis += 10
         if (millis > 0) {
-            black = 5 + millis / 10
+            black = -3 + millis / 10
             white = 5
             footer.style.background = `linear-gradient(120deg, black ${black}%, white ${white}%, black, black)`
         } else {if (millis < -618){
@@ -25,7 +25,7 @@ window.onload = function(e) {
             g = 255 / (-millis / 6)
             b = 255 / (-millis / 6)
             white = `rgb(${r},${g},${b})`
-            footer.style.background = `linear-gradient(120deg, black 5%, ${white} 5%, black 50%)`
+            footer.style.background = `linear-gradient(120deg, black -5%, ${white} 5%, black 50%)`
         }}
 
         // console.log(millis)
@@ -41,7 +41,10 @@ window.onload = function(e) {
 
 
     var content = document.querySelector('#wrapper-with-image .content')
-    content.addEventListener('scroll', function() {
-        console.log('scroll')
+    content.addEventListener('scroll', function(e) {
+        if (content.scrollHeight == content.clientHeight + content.scrollTop)
+            console.log('bottom')
+        // console.log(e)
+        // console.log('scroll')
     })
 }
