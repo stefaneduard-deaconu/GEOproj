@@ -71,7 +71,6 @@ def start(event):
     """
     print('you pressed "Start"')
     print(polygon)
-    quit()
     # finish the polygon:
     tad.goto(polygon[0][0], polygon[0][1])
     print(polygon)
@@ -83,6 +82,7 @@ def start(event):
     window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
     tad.goto(window_width * 0.9 // 2, window_height * 0.9 // 2)
     #
+    quit()
     from triangles import y_decompose
     """
     Function that given the border of a polygon, generates a decomposition
