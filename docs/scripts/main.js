@@ -41,9 +41,13 @@ window.onload = function(e) {
 
 
     var content = document.querySelector('#wrapper-with-image .content')
+    var bottom_state = false
     content.addEventListener('scroll', function(e) {
         if (content.scrollHeight == content.clientHeight + content.scrollTop)
-            console.log('bottom')
+            bottom_state = true
+        else
+            bottom_state = false
+        console.log(bottom_state)
         // console.log(e)
         // console.log('scroll')
     })
