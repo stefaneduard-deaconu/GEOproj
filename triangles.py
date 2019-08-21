@@ -511,11 +511,12 @@ def triangulate(y_polygon):
     class TriangleQueue(object):
 
         def __init__(self, y_polygon_trig):
-            self.points = sorted(y_polygon_trig, key=lambda point: -point[1])[1:]
+            self.points = sorted(y_polygon_trig, key=lambda point: -point[1])
             top_index, top = max(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             bot_index, bot = min(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             self.queue = self.points[0:2]
             self.points = self.points[2:]
+            print('\n\n', self.queue, self.points)
             self.types = {top: 'top', bot: 'bot'}
             # auxiliary, the len of the points
             p_len = len(y_polygon_trig)
@@ -550,31 +551,68 @@ def triangulate(y_polygon):
         def get_triangles(self):
             triangles = []  # a work in progress, the class's 'main feature'
             # we for now settle for the lines we add for triangulating :D
-            return triangles
+            # return triangles
             lines = []
             while self.queue:  # while it's not empty,
+                print(self.queue, self.points)
                 if self.points:
                     next_point = self.points.pop(0)
                     # two cases, they have the same type, or they don't
                     # if they do are on the same side:
-                    if self.types[next_point] == self.types[queue[-1]]:
-                        # then we check the trig order and eventually eliminate
+                    if self.types[next_point] == self.types[self.queue[-1]]:
+                        print('DIFFERENT SIDE')
+                        # ..then we check the trig order and eliminate
                         #   triangles, if any three consecutive points are
                         #   'leftturn's
                         # IMP ----> if the queue has only one item, we just add
                         #   the next_point
-                        pass
+                        if len(self.queue) == 1:  # the easy case :D
+                            self.queue.append(next_point)
+                        else:
+                            # we eliminate all leftturns (we take two items
+                            #   from the side, and the next_point)
+                            while len(self.queue) > 1:
+                                trig = trig_order(
+                                          next_point,
+                                          self.queue[-1], self.queue[-2]
+                                          )
+                                c_1 = trig and self.types[next_point] == 'right'
+                                c_2 = not trig and self.types[next_point] == 'left'
+                                if c_1 or c_2:
+                                    triangles.append(
+                                        (next_point,
+                                        self.queue[-1], self.queue[-2])
+                                    )
+                                    lines.append((next_point, self.queue[-2]))
+                                    # for testing:
+                                    line(lines[-1][0], lines[-1][1], tad=tad, color='red')
+                                    self.queue.pop()
+                                else:
+                                    break
+                            self.queue.append(next_point)
+
                     else:
                         # if they are not on the same side, we make triangles
                         #   like this -> one points is next_point, one point is in queue[1:]
                         #   and the last point is queue[0]
                         # IMP ----> everything that remains in the queue is the
                         #   next_point
+                        #  TODO  MISTAKE, probably wrong :)))
+                        print('SAME SIDE')
+                        for index, point_1 in enumerate(self.queue[1:]):
+                            point_0 = self.queue[index - 1]
+                            lines.append((next_point, point_1))
+                            # for testing:
+                            line(lines[-1][0], lines[-1][1], tad=tad, color='red')
+                            triangles.append((next_point, point_0, point_1))
+                        self.queue.clear()
+                        # if we got to the last point, don't add it !!!
+                        if self.types[next_point] != 'bot':
+                            self.queue.append(next_point)
 
-                        pass
                 else:  # there aren't any points, so just check the queue
                     raise ValueError('there are remaining points in the queue')
-            return triangles
+            return (lines, triangles)
 
     # we presume the polygons' points are in trig order
 
