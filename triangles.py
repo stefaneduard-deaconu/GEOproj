@@ -24,7 +24,7 @@ polygons = [
 ]
 which_one = 9
 tad = turtle.Turtle()
-tad.speed(6)
+tad.speed(10)
 tad.ht()
 # using the turtle to first draw the 'coordinate axes' :D
 
@@ -515,25 +515,28 @@ def triangulate(y_polygon):
             top_index, top = max(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             bot_index, bot = min(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             queue = points[0:2]
-            types = {top: 'top'}
+            types = {top: 'top', bot: 'bot'}
             # auxiliary, the len of the points
             p_len = len(y_polygon_trig)
             # getting the left part
             index = (top_index + 1) % p_len
             point = y_polygon_trig[index]
             while(point != bot):
+                types[point] = 'left'
                 index = (index + 1) % p_len
                 point = y_polygon_trig[index]
             # getting the right part
             index = (bot_index + 1) % p_len
             point = y_polygon_trig[index]
-            while(point != bot):
+            while(point != top):
+                types[point] = 'right'
                 index = (index + 1) % p_len
                 point = y_polygon_trig[index]
-            # first turn:
-            last_turn = 'top'
-
-        # member functions that act as auxiliaries, for better code
+            # first turn ----> TODO  do we really need this?
+            draw_poly(y_polygon_trig, tad, color='blue')
+            print(types)
+            input("nothing? ")
+        # member functions that act as auxiliaries, for better code:
 
         def get_next_point(self):
             # we set the next one into the queue, and we return it
@@ -542,11 +545,12 @@ def triangulate(y_polygon):
         #   triangles
 
         def get_triangles(self):
-            triangles = []
+            triangles = []  # a work in progress, the class's 'main feature'
             return triangles
 
+    # we presume the polygons' points are in trig order
 
-
+    return TriangleQueue(y_polygon)
 
 
 # for testing:
@@ -562,23 +566,70 @@ def sign(num):
 
 
 def main():
-    for polygon in polygons[which_one:which_one + 1]:
-        polys = y_decompose(polygon)
-        print()
-        print('*' * len('* In the end we\'ve got: *'))
-        print('* In the end we\'ve got: *')
-        print('*' * len('* In the end we\'ve got: *'))
-        print()
-        pprint(polys)
-        # drawing them:
-        # draw the y-monotone polys:
-        # draw_poly(polygon, tad, color='red')
-        tad.pensize(2)
-        tad.speed(5)
-        for poly in polys:
-            draw_poly(poly, tad, color='blue')
-        tad.screen.mainloop()
 
+    # testing the decomposition algorithm
+
+    # for polygon in polygons[which_one:which_one + 1]:
+    #     polys = y_decompose(polygon)
+    #     print()
+    #     print('*' * len('* In the end we\'ve got: *'))
+    #     print('* In the end we\'ve got: *')
+    #     print('*' * len('* In the end we\'ve got: *'))
+    #     print()
+    #     pprint(polys)
+    #     # drawing them:
+    #     # draw the y-monotone polys:
+    #     # draw_poly(polygon, tad, color='red')
+    #     tad.pensize(2)
+    #     tad.speed(5)
+    #     for poly in polys:
+    #         draw_poly(poly, tad, color='blue')
+    #     for poly in polys:
+    #         print(triangulate(poly))
+    #     tad.screen.mainloop()
+
+    # testing the triangulation algorithm:
+
+    y_polys = [
+        [(-123.0, 237.0), (-241.0, 198.0), (-251.0, 167.0)],
+        [(-160.0, 145.0), (-62.0, 239.0), (-197.0, 144.0)],
+        [(34.0, 225.0), (290.0, 265.0), (-7.0, 250.0), (24.0, 126.0)],
+        [(-211.0, 79.0), (-251.0, 167.0), (-241.0, 198.0), (-270.0, 253.0),
+            (-295.0, 107.0)],
+        [(-62.0, 239.0), (-125.0, 134.0), (-58.0, 71.0)],
+        [(224.0, 79.0), (412.0, 242.0), (242.0, 199.0), (221.0, 139.0),
+            (173.0, 93.0), (203.0, -60.0)],
+        [(328.0, 80.0), (224.0, 79.0), (203.0, -60.0)],
+        [(-95.0, -49.0), (-125.0, 134.0), (-62.0, 239.0), (-160.0, 145.0),
+          (-211.0, 79.0), (-171.0, 66.0), (-112.0, -108.0)],
+         [(-25.0, -47.0),
+          (147.0, 13.0),
+          (42.0, 33.0),
+          (221.0, 139.0),
+          (242.0, 199.0),
+          (290.0, 265.0),
+          (34.0, 225.0),
+          (190.0, 216.0),
+          (-95.0, -49.0),
+          (-112.0, -108.0)],
+         [(-205.0, -139.0),
+          (-175.0, -77.0),
+          (-216.0, 3.0),
+          (-283.0, -17.0),
+          (-215.0, -43.0),
+          (-248.0, -141.0)],
+         [(148.0, -214.0), (38.0, -103.0), (-17.0, -189.0), (-58.0, -233.0)],
+         [(-318.0, -161.0), (-248.0, -141.0), (-343.0, -60.0), (-280.0, 41.0),
+            (-171.0, 66.0), (-211.0, 79.0), (-295.0, 107.0), (-362.0, 135.0),
+            (-360.0, -244.0)],
+         [(-135.0, -236.0), (-242.0, -179.0), (-127.0, -136.0), (-205.0, -139.0),
+            (-248.0, -141.0), (-318.0, -161.0), (-164.0, -268.0)],
+         [(-17.0, -189.0), (38.0, -103.0), (-135.0, -236.0), (-164.0, -268.0)]
+    ]
+
+    for poly in y_polys:
+        print(triangulate(poly))
+    tad.screen.mainloop()
 
 if __name__ == '__main__':
     main()
