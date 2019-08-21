@@ -511,46 +511,74 @@ def triangulate(y_polygon):
     class TriangleQueue(object):
 
         def __init__(self, y_polygon_trig):
-            points = sorted(y_polygon_trig, key=lambda point: -point[1])[1:]
+            self.points = sorted(y_polygon_trig, key=lambda point: -point[1])[1:]
             top_index, top = max(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             bot_index, bot = min(enumerate(y_polygon_trig), key=lambda point: point[1][1])
-            queue = points[0:2]
-            types = {top: 'top', bot: 'bot'}
+            self.queue = self.points[0:2]
+            self.points = self.points[2:]
+            self.types = {top: 'top', bot: 'bot'}
             # auxiliary, the len of the points
             p_len = len(y_polygon_trig)
             # getting the left part
             index = (top_index + 1) % p_len
             point = y_polygon_trig[index]
             while(point != bot):
-                types[point] = 'left'
+                self.types[point] = 'left'
                 index = (index + 1) % p_len
                 point = y_polygon_trig[index]
             # getting the right part
             index = (bot_index + 1) % p_len
             point = y_polygon_trig[index]
             while(point != top):
-                types[point] = 'right'
+                self.types[point] = 'right'
                 index = (index + 1) % p_len
                 point = y_polygon_trig[index]
             # first turn ----> TODO  do we really need this?
             draw_poly(y_polygon_trig, tad, color='blue')
-            print(types)
-            input("nothing? ")
+            # print(types)
+            # input("nothing? ")
+
         # member functions that act as auxiliaries, for better code:
 
-        def get_next_point(self):
-            # we set the next one into the queue, and we return it
-            pass
+        # def get_next_point(self):
+        #     # we set the next one into the queue, and we return it
+        #     pass
+
         # the function we call after instantiating an object -> returns the
         #   triangles
 
         def get_triangles(self):
             triangles = []  # a work in progress, the class's 'main feature'
+            # we for now settle for the lines we add for triangulating :D
+            return triangles
+            lines = []
+            while self.queue:  # while it's not empty,
+                if self.points:
+                    next_point = self.points.pop(0)
+                    # two cases, they have the same type, or they don't
+                    # if they do are on the same side:
+                    if self.types[next_point] == self.types[queue[-1]]:
+                        # then we check the trig order and eventually eliminate
+                        #   triangles, if any three consecutive points are
+                        #   'leftturn's
+                        # IMP ----> if the queue has only one item, we just add
+                        #   the next_point
+                        pass
+                    else:
+                        # if they are not on the same side, we make triangles
+                        #   like this -> one points is next_point, one point is in queue[1:]
+                        #   and the last point is queue[0]
+                        # IMP ----> everything that remains in the queue is the
+                        #   next_point
+
+                        pass
+                else:  # there aren't any points, so just check the queue
+                    raise ValueError('there are remaining points in the queue')
             return triangles
 
     # we presume the polygons' points are in trig order
 
-    return TriangleQueue(y_polygon)
+    return TriangleQueue(y_polygon).get_triangles()
 
 
 # for testing:
@@ -630,6 +658,8 @@ def main():
     for poly in y_polys:
         print(triangulate(poly))
     tad.screen.mainloop()
+
+
 
 if __name__ == '__main__':
     main()
