@@ -210,3 +210,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+    # list(map(int, input('Enter numbers: ').split())) ---> for later
