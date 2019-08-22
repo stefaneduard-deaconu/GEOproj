@@ -560,7 +560,7 @@ def triangulate(y_polygon):
                     # two cases, they have the same type, or they don't
                     # if they do are on the same side:
                     if self.types[next_point] == self.types[self.queue[-1]]:
-                        print('DIFFERENT SIDE')
+                        print('SAME SIDE')
                         # ..then we check the trig order and eliminate
                         #   triangles, if any three consecutive points are
                         #   'leftturn's
@@ -569,46 +569,61 @@ def triangulate(y_polygon):
                         if len(self.queue) == 1:  # the easy case :D
                             self.queue.append(next_point)
                         else:
-                            # we eliminate all leftturns (we take two items
-                            #   from the side, and the next_point)
-                            while len(self.queue) > 1:
-                                trig = trig_order(
-                                          next_point,
-                                          self.queue[-1], self.queue[-2]
-                                          )
-                                c_1 = trig and self.types[next_point] == 'right'
-                                c_2 = not trig and self.types[next_point] == 'left'
-                                if c_1 or c_2:
-                                    triangles.append(
-                                        (next_point,
-                                        self.queue[-1], self.queue[-2])
-                                    )
-                                    lines.append((next_point, self.queue[-2]))
-                                    # for testing:
-                                    line(lines[-1][0], lines[-1][1], tad=tad, color='red')
-                                    self.queue.pop()
-                                else:
+                            # we eliminate all leftturns, if there are any
+                            trig = (trig_order(
+                                next_point,
+                                self.queue[-1], self.queue[-2]
+                            ) == 'leftturn')
+                            # we repeat elimination
+                            c_1 = self.types[next_point] == 'right' and trig
+                            c_2 = self.types[next_point] == 'left' and not trig
+                            while c_1 or c_2:
+                                # we extract a triangle
+                                triangles.append((
+                                    next_point,
+                                    self.queue[-1], self.queue[-2]
+                                ))
+                                lines.append((next_point, self.queue[-2]))
+                                # for testing:
+                                line(lines[-1][0], lines[-1][1], tad=tad, color='red')
+                                self.queue.pop()
+                                # important for indeces
+                                if len(self.queue) == 1:
                                     break
+                                trig = (trig_order(
+                                    next_point,
+                                    self.queue[-1], self.queue[-2]
+                                ) == 'leftturn')
+                                c_1 = self.types[next_point] == 'right' and trig
+                                c_2 = self.types[next_point] == 'left' and not trig
+                            # in every case, we add the next_point to the queue
                             self.queue.append(next_point)
-
                     else:
                         # if they are not on the same side, we make triangles
-                        #   like this -> one points is next_point, one point is in queue[1:]
-                        #   and the last point is queue[0]
-                        # IMP ----> everything that remains in the queue is the
-                        #   next_point
-                        #  TODO  MISTAKE, probably wrong :)))
-                        print('SAME SIDE')
-                        for index, point_1 in enumerate(self.queue[1:]):
+                        # or we just finished, and the types is 'bot'
+                        print('DIFFERENT SIDE OR BOT')
+                        # we add len(self.queue) - 1 triangles, and
+                        #   len(self.queue) - 2 lines, if top
+                        for index in range(1, len((self.queue))):
                             point_0 = self.queue[index - 1]
+                            point_1 = self.queue[index]
                             lines.append((next_point, point_1))
                             # for testing:
-                            line(lines[-1][0], lines[-1][1], tad=tad, color='red')
+                            if self.types[next_point] != 'bot' or index < len((self.queue)) - 1:
+                                line(lines[-1][0], lines[-1][1], tad=tad, color='red')
                             triangles.append((next_point, point_0, point_1))
-                        self.queue.clear()
-                        # if we got to the last point, don't add it !!!
+                        triangles.append((
+                            next_point,
+                            self.queue[-1], self.queue[-2]
+                        ))
+                        # if we got to the last point, don't add it. FINISH !!!
                         if self.types[next_point] != 'bot':
-                            self.queue.append(next_point)
+                            self.queue = [
+                                self.queue[-1], next_point
+                            ]
+                        else:
+                            self.queue.clear()
+                            lines.pop()  # it was already drawn :D
 
                 else:  # there aren't any points, so just check the queue
                     raise ValueError('there are remaining points in the queue')
@@ -667,30 +682,20 @@ def main():
             (173.0, 93.0), (203.0, -60.0)],
         [(328.0, 80.0), (224.0, 79.0), (203.0, -60.0)],
         [(-95.0, -49.0), (-125.0, 134.0), (-62.0, 239.0), (-160.0, 145.0),
-          (-211.0, 79.0), (-171.0, 66.0), (-112.0, -108.0)],
-         [(-25.0, -47.0),
-          (147.0, 13.0),
-          (42.0, 33.0),
-          (221.0, 139.0),
-          (242.0, 199.0),
-          (290.0, 265.0),
-          (34.0, 225.0),
-          (190.0, 216.0),
-          (-95.0, -49.0),
-          (-112.0, -108.0)],
-         [(-205.0, -139.0),
-          (-175.0, -77.0),
-          (-216.0, 3.0),
-          (-283.0, -17.0),
-          (-215.0, -43.0),
-          (-248.0, -141.0)],
-         [(148.0, -214.0), (38.0, -103.0), (-17.0, -189.0), (-58.0, -233.0)],
-         [(-318.0, -161.0), (-248.0, -141.0), (-343.0, -60.0), (-280.0, 41.0),
+            (-211.0, 79.0), (-171.0, 66.0), (-112.0, -108.0)],
+        [(-25.0, -47.0), (147.0, 13.0), (42.0, 33.0), (221.0, 139.0),
+            (242.0, 199.0), (290.0, 265.0), (34.0, 225.0), (190.0, 216.0),
+            (-95.0, -49.0), (-112.0, -108.0)],
+        [(-205.0, -139.0), (-175.0, -77.0), (-216.0, 3.0), (-283.0, -17.0),
+            (-215.0, -43.0), (-248.0, -141.0)],
+        [(148.0, -214.0), (38.0, -103.0), (-17.0, -189.0), (-58.0, -233.0)],
+        [(-318.0, -161.0), (-248.0, -141.0), (-343.0, -60.0), (-280.0, 41.0),
             (-171.0, 66.0), (-211.0, 79.0), (-295.0, 107.0), (-362.0, 135.0),
             (-360.0, -244.0)],
-         [(-135.0, -236.0), (-242.0, -179.0), (-127.0, -136.0), (-205.0, -139.0),
-            (-248.0, -141.0), (-318.0, -161.0), (-164.0, -268.0)],
-         [(-17.0, -189.0), (38.0, -103.0), (-135.0, -236.0), (-164.0, -268.0)]
+        [(-135.0, -236.0), (-242.0, -179.0), (-127.0, -136.0),
+            (-205.0, -139.0), (-248.0, -141.0),
+            (-318.0, -161.0), (-164.0, -268.0)],
+        [(-17.0, -189.0), (38.0, -103.0), (-135.0, -236.0), (-164.0, -268.0)]
     ]
 
     for poly in y_polys:
