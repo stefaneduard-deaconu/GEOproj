@@ -4,93 +4,8 @@ Here we have two utility functions, for y-decomposition (decomposing a
   polygon.
 Plus the main() function, used throughout the project for testing:D
 """
-import ctypes
+
 from pprint import pprint
-import turtle
-polygons = [
-    [(-124.0, 181.0), (-62.0, 103.0), (81.0, 181.0), (129.0, 22.0), (-37.0, 33.0), (80.0, -149.0), (-154.0, -166.0), (-203.0, 212.0), (-139.0, 62.0), (-37.0, 56.0), (-177.0, 205.0), (-48.0, 254.0)],
-    [(115.0, -59.0), (142.0, 136.0), (9.0, 85.0), (-95.0, 176.0), (-82.0, -152.0), (71.0, 30.0)],
-    [(-176.0, 140.0), (-186.0, 98.0), (55.0, 186.0), (14.0, 6.0), (184.0, 81.0), (234.0, -118.0), (-92.0, -116.0), (-31.0, 80.0), (-228.0, -149.0), (-245.0, 197.0)],
-    [(-308.0, 66.0), (-247.0, 200.0), (-193.0, 22.0), (-162.0, 80.0), (-189.0, 128.0), (-107.0, 205.0), (-94.0, 86.0), (-120.0, 39.0), (-74.0, -36.0), (-38.0, 52.0), (-56.0, 108.0), (347.0, 212.0), (23.0, 37.0), (39.0, 13.0), (75.0, 44.0), (-96.0, -267.0)],
-    [(-289.0, 194.0), (-182.0, 219.0), (24.0, 77.0), (117.0, 220.0), (162.0, 27.0), (307.0, 141.0), (215.0, -245.0), (88.0, 18.0), (-159.0, -208.0), (44.0, -141.0), (70.0, -263.0), (-239.0, -247.0), (-334.0, 153.0), (-259.0, 63.0), (-64.0, 51.0), (-226.0, -18.0), (-230.0, -114.0), (-6.0, 52.0)],
-    [(0, 200), (200, 0), (0, -200), (-200, 0)],
-    [(0, 200), (200, -200), (0, 0), (-200, -200)],
-    [(-239.0, 68.0), (-123.0, 247.0), (-96.0, 98.0), (-157.0, 92.0), (152.0, 15.0), (163.0, 249.0), (-6.0, 155.0), (124.0, 288.0), (370.0, 204.0), (251.0, -69.0), (254.0, 129.0), (70.0, -168.0), (-269.0, -91.0), (-10.0, 1.0), (-303.0, -10.0), (-320.0, 200.0)],
-    [(19.0, 247.0), (-112.0, 113.0), (-162.0, 223.0), (-231.0, -35.0), (-307.0, 76.0), (-242.0, -207.0), (-14.0, -17.0), (-73.0, 51.0)],
-    [(-197.0, 144.0), (-62.0, 239.0), (-58.0, 71.0), (-125.0, 134.0), (-95.0, -49.0), (190.0, 216.0), (34.0, 225.0), (24.0, 126.0), (-7.0, 250.0), (290.0, 265.0), (242.0, 199.0), (412.0, 242.0), (224.0, 79.0), (328.0, 80.0), (203.0, -60.0), (173.0, 93.0), (221.0, 139.0), (42.0, 33.0), (147.0, 13.0), (-25.0, -47.0), (-112.0, -108.0), (-171.0, 66.0), (-280.0, 41.0), (-343.0, -60.0), (-248.0, -141.0), (-215.0, -43.0), (-283.0, -17.0), (-216.0, 3.0), (-175.0, -77.0), (-205.0, -139.0), (-127.0, -136.0), (-242.0, -179.0), (-135.0, -236.0), (38.0, -103.0), (148.0, -214.0), (-58.0, -233.0), (-17.0, -189.0), (-164.0, -268.0), (-318.0, -161.0), (-360.0, -244.0), (-362.0, 135.0), (-295.0, 107.0), (-270.0, 253.0), (-241.0, 198.0), (-123.0, 237.0), (-251.0, 167.0), (-211.0, 79.0), (-160.0, 145.0)],
-    [(56.0, 113.0), (111.0, 167.0), (131.0, 41.0), (180.0, 70.0), (241.0, -45.0), (75.0, -47.0), (91.0, 38.0), (-71.0, -195.0), (133.0, -147.0), (-122.0, -272.0), (-255.0, -128.0), (-40.0, -50.0), (-97.0, -113.0), (30.0, -9.0), (-234.0, 74.0), (-120.0, 223.0), (-96.0, 123.0), (68.0, 240.0), (85.0, 196.0), (-23.0, 109.0), (92.0, 113.0)],
-    [(16.0, 71.0), (133.0, 159.0), (106.0, 43.0), (262.0, -84.0), (-131.0, -128.0), (33.0, 20.0), (-164.0, 34.0), (-34.0, 224.0), (-18.0, 157.0), (37.0, 213.0)],
-[(16.0, 71.0), (133.0, 159.0), (106.0, 43.0), (262.0, -84.0), (-131.0, -128.0), (33.0, 20.0), (-164.0, 34.0), (-34.0, 224.0), (-18.0, 157.0), (37.0, 213.0)]
-]
-which_one = 7
-tad = turtle.Turtle()
-tad.speed(10)
-tad.ht()
-# using the turtle to first draw the 'coordinate axes' :D
-
-
-def screen_dimensions():
-    # A simple function to compute the screen's dimensions.
-    user32 = ctypes.windll.user32
-    return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-
-
-screen_width, screen_height = screen_dimensions()
-window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
-print(844, 614)
-# window = turtle.Screen
-turtle.setup(window_width, window_height)
-print(turtle.screensize())
-
-# turtle.Screen.setup(width=screen_width, height=screen_height)
-
-def line(A, B, tad, color):
-    x0, y0, x1, y1 = A[0], A[1], B[0], B[1]
-    tads_position = tad.position()
-    tads_color = tad.color()
-    tad.color(color, color)
-    tad.penup()
-    tad.goto(x0, y0)
-    tad.pendown()
-    tad.goto(x1, y1)
-    tad.penup()
-    tad.goto(tads_position)
-    tad.color(tads_color[0], tads_color[1])
-
-def draw_text(coords, text, tad, color='black'):
-    tads_position = tad.position()
-    tads_color = tad.color()
-    tad.color(color, color)
-    tad.pu()
-    tad.goto(coords)
-    tad.pd()
-    tad.write(text, font=('Courier', 10, 'italic'), align='center')
-    tad.pu()
-    tad.color(tads_color[0], tads_color[1])
-    tad.goto(tads_position)
-
-
-line((-window_width * 0.9 // 2, 0), (window_width * 0.9 // 2, 0), tad, 'lime')
-tad.setheading(90)
-line((0, -window_height * 0.9 // 2), (0, window_height * 0.9 // 2), tad, 'lime')
-
-
-def draw_poly(polygon, tad, color='lime'):
-    tad.penup()
-    tad.goto(polygon[0])
-    tads_color = tad.color()
-    tad.color(color, color)
-    tad.pendown()
-    for p in polygon + [polygon[0]]:
-        tad.goto(p[0], p[1])
-    tad.color(tads_color[0], tads_color[1])
-    tad.penup()
-    tad.goto(0, 0)
-
-
-draw_poly(polygons[which_one], tad, color='black')
-tad.pensize(2)
-tad.speed(7)
 
 def y_decompose(polygon):
     def sign(num):
@@ -169,13 +84,11 @@ def y_decompose(polygon):
 
     types = get_types(polygon)
     fathers = get_fathers(polygon)  # we don't check the trig. order here :D
-    # print({point: types[point] for point in polygon})
 
     y_ordered_points = sorted(polygon, key=lambda A: -A[1])
     x_order = {
         point: index for index, point in enumerate(sorted(polygon, key=lambda A: A[0]))
     }
-    # pprint(y_ordered_points)
 
     class Comp(object):
         def __init__(self, given_points, given_state=(None, None)):
@@ -187,19 +100,12 @@ def y_decompose(polygon):
                 # we created a new component from a set of points
                 self.points = [given_points]
                 self.state = given_state  # given state has state and point
-            # else:
-            #     print('NOT A LIST - problem with a Comp initialization')
 
         def get_margins(self):
             # remember there must be at least one point
             if len(self.points) > 1:  # if there are multiple points, then
                 return (self.points[-1], self.points[0])
             else:
-                # polygon_index = None
-                # if types[self.points[0]] == 'start':  # we get the start
-                #     polygon_index = polygon.index(self.points[0])
-                # else:
-                #     polygon_index = polygon.index(self.points[1])
                 polygon_index = polygon.index(self.points[0])
                 return (
                     polygon[(polygon_index + 1) % len(polygon)],
@@ -207,7 +113,7 @@ def y_decompose(polygon):
                     )
 
         def add_point(self, point, position):
-            # we add the point so that self.points keep the trig. order
+            # we add the point so that self.points keeps the trig. order
             if position == 0:
                 self.points = [point] + self.points
             elif position == -1:
@@ -219,8 +125,6 @@ def y_decompose(polygon):
     edges = []  # edges are the lines we add while decomposing
     for cur_index, (x, y) in enumerate(y_ordered_points):
         cur_point = (x, y)
-
-        draw_text(cur_point, str(cur_index), tad, color='lime')
 
         print('-' * 50)
         print(cur_point, '\'{}\', x_order={}'.format(types[cur_point], x_order[cur_point]), '----> point {}'.format(cur_index))
@@ -267,9 +171,8 @@ def y_decompose(polygon):
                 print(left_comp.points)
                 print([cur_point])
                 points = right_comp.points + [cur_point] + left_comp.points
-                print(points)
-                left_points_index = len(right_comp.points) + 1
                 # print(points)
+                left_points_index = len(right_comp.points) + 1
                 # (*!)The order of the next two it's is essential when both Comp's
                 #   are in the 'merge' state
                 # (*1) we merge extra 'merge's (left or right or both Comp's)
@@ -287,7 +190,6 @@ def y_decompose(polygon):
                     # delete the points from the poly's middle part
                     # print('POLYGON ----> ', polys[-1])
                     edges.extend([(points[left_points_index - 1], points[left_merge_index])])
-                    line(edges[-1][0], edges[-1][1], tad, 'red')
                     for i in range(left_points_index, left_merge_index):
                         points.pop(left_points_index)
                 print('RIGHT')
@@ -304,7 +206,6 @@ def y_decompose(polygon):
                     # delete the points from the poly's middle part
                     # print('POLYGON ----> ', polys[-1])
                     edges.extend([(points[right_merge_index], points[left_points_index - 1])])
-                    line(edges[-1][0], edges[-1][1], tad, 'red')
                     for i in range(right_merge_index + 1, left_points_index - 1):
                         points.pop(right_merge_index + 1)
                 comps.append(
@@ -337,10 +238,10 @@ def y_decompose(polygon):
                     margin_left = comp.points[-1]
                     margin_right = comp.points[0]  # because it must be upper
                     #
-                    print(y_level, y_ordered_points.index(true_margin_left), y_ordered_points.index(true_margin_right), y_ordered_points.index(margin_left), y_ordered_points.index(margin_right))
+                    # print(y_level, y_ordered_points.index(true_margin_left), y_ordered_points.index(true_margin_right), y_ordered_points.index(margin_left), y_ordered_points.index(margin_right))
                     first_turn = trig_order(true_margin_right, margin_right, cur_point)
                     second_turn = trig_order(margin_left, true_margin_left, cur_point)
-                    print(first_turn, second_turn)
+                    # print(first_turn, second_turn)
                     # if true_margin_left[0] <= cur_point[0] and cur_point[0] <= true_margin_right[0]:  # insufficient to test if the 'split' is inside the comp :((
                     if first_turn == second_turn:
                         print("SPLIT ----> comp number {}".format(comps.index(comp)))
@@ -358,7 +259,6 @@ def y_decompose(polygon):
                                 new_comp_points = comp.points[:merge_index + 1]
                                 # we add the edge:
                                 edges.extend([(new_comp_points[-1], cur_point)])
-                                line(edges[-1][0], edges[-1][1], tad, 'red')
                                 #
                                 new_comp_points.extend([cur_point])
                                 comps.append(
@@ -378,7 +278,6 @@ def y_decompose(polygon):
                             new_comp_points = [other_point, cur_point]
                             # we add the extra edge:
                             edges.extend([tuple(new_comp_points)])
-                            line(edges[-1][0], edges[-1][1], tad, 'red')
                             comps.append(
                                 Comp(new_comp_points)
                                 )
@@ -390,7 +289,6 @@ def y_decompose(polygon):
                             #   we create the new comp:
                             # we add the extra edge:
                             edges.extend([(comp.points[0], cur_point)])
-                            line(edges[-1][0], edges[-1][1], tad, 'red')
                             # and then we finish the comp
                             new_comp_points = comp.points + [cur_point]
                             comps.append(
@@ -429,14 +327,12 @@ def y_decompose(polygon):
                                 )
                             # we add the edge:
                             edges.extend([(comp.points[merge_index], cur_point)])
-                            line(edges[-1][0], edges[-1][1], tad, 'red')
                         else:
                             # if there's no state, we just add the cur_point
                             #   to the comp's points to get the final polygon
                             polys.append(
                                 comp.points + [cur_point]
                                 )
-
                         # at the end, we remove (pop) the Comp
                         comps.pop(index)
                         break
@@ -478,7 +374,6 @@ def y_decompose(polygon):
                             comp.state = (None, None)
                             # and we add the edge:
                             edges.extend([(cur_point, merge_point)])
-                            line(edges[-1][0], edges[-1][1], tad, 'red')
                         else:
                             # we add the son the to comp
                             if father == comp.points[0]:  # be careful
@@ -505,8 +400,7 @@ def y_decompose(polygon):
                 ])
             pprint(dictionary)
         pprint([[y_ordered_points.index(point) for point in poly] for poly in  polys])
-        # line(edges[-1][0], edges[-1][1], tad, 'red')
-    return polys
+    return edges, polys
 
 
 def triangulate(y_polygon):
@@ -531,14 +425,13 @@ def triangulate(y_polygon):
             # we could solve this issue here, by just eliminating the middle one :D
 
     class TriangleQueue(object):
-
         def __init__(self, y_polygon_trig):
             self.points = sorted(y_polygon_trig, key=lambda point: -point[1])
             top_index, top = max(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             bot_index, bot = min(enumerate(y_polygon_trig), key=lambda point: point[1][1])
             self.queue = self.points[0:2]
             self.points = self.points[2:]
-            print('\n\n', self.queue, self.points)
+            # print('\n\n', self.queue, self.points)
             self.types = {top: 'top', bot: 'bot'}
             # auxiliary, the len of the points
             p_len = len(y_polygon_trig)
@@ -556,10 +449,6 @@ def triangulate(y_polygon):
                 self.types[point] = 'right'
                 index = (index + 1) % p_len
                 point = y_polygon_trig[index]
-            # first turn ----> TODO  do we really need this?
-            draw_poly(y_polygon_trig, tad, color='blue')
-            # print(types)
-
 
         def get_triangles(self):
             triangles = []  # a work in progress, the class's 'main feature'
@@ -598,7 +487,7 @@ def triangulate(y_polygon):
                                 ))
                                 lines.append((next_point, self.queue[-2]))
                                 # for testing:
-                                line(lines[-1][0], lines[-1][1], tad=tad, color='red')
+                                # line(lines[-1][0], lines[-1][1], tad=tad, color='red')
                                 self.queue.pop()
                                 # important for indeces
                                 if len(self.queue) == 1:
@@ -622,8 +511,9 @@ def triangulate(y_polygon):
                             point_1 = self.queue[index]
                             lines.append((next_point, point_1))
                             # for testing:
-                            if self.types[next_point] != 'bot' or index < len((self.queue)) - 1:
-                                line(lines[-1][0], lines[-1][1], tad=tad, color='red')
+                            # (*)
+                            # if self.types[next_point] != 'bot' or index < len((self.queue)) - 1:
+                            #     line(lines[-1][0], lines[-1][1], tad=tad, color='red')
                             triangles.append((next_point, point_0, point_1))
                         triangles.append((
                             next_point,
@@ -659,61 +549,7 @@ def sign(num):
 
 
 def main():
-
-    # testing the decomposition algorithm
-
-    for polygon in polygons[which_one:which_one + 1]:
-        polys = y_decompose(polygon)
-        print()
-        print('*' * len('* In the end we\'ve got: *'))
-        print('* In the end we\'ve got: *')
-        print('*' * len('* In the end we\'ve got: *'))
-        print()
-        pprint(polys)
-        # drawing them:
-        # draw the y-monotone polys:
-        # draw_poly(polygon, tad, color='red')
-        tad.pensize(2)
-        tad.speed(7)
-        for poly in polys:
-            draw_poly(poly, tad, color='blue')
-        # for poly in polys:
-        #     print(triangulate(poly))
-        tad.screen.mainloop()
-
-    # testing the triangulation algorithm:
-
-    # y_polys = [
-    #     [(-123.0, 237.0), (-241.0, 198.0), (-251.0, 167.0)],
-    #     [(-160.0, 145.0), (-62.0, 239.0), (-197.0, 144.0)],
-    #     [(34.0, 225.0), (290.0, 265.0), (-7.0, 250.0), (24.0, 126.0)],
-    #     [(-211.0, 79.0), (-251.0, 167.0), (-241.0, 198.0), (-270.0, 253.0),
-    #         (-295.0, 107.0)],
-    #     [(-62.0, 239.0), (-125.0, 134.0), (-58.0, 71.0)],
-    #     [(224.0, 79.0), (412.0, 242.0), (242.0, 199.0), (221.0, 139.0),
-    #         (173.0, 93.0), (203.0, -60.0)],
-    #     [(328.0, 80.0), (224.0, 79.0), (203.0, -60.0)],
-    #     [(-95.0, -49.0), (-125.0, 134.0), (-62.0, 239.0), (-160.0, 145.0),
-    #         (-211.0, 79.0), (-171.0, 66.0), (-112.0, -108.0)],
-    #     [(-25.0, -47.0), (147.0, 13.0), (42.0, 33.0), (221.0, 139.0),
-    #         (242.0, 199.0), (290.0, 265.0), (34.0, 225.0), (190.0, 216.0),
-    #         (-95.0, -49.0), (-112.0, -108.0)],
-    #     [(-205.0, -139.0), (-175.0, -77.0), (-216.0, 3.0), (-283.0, -17.0),
-    #         (-215.0, -43.0), (-248.0, -141.0)],
-    #     [(148.0, -214.0), (38.0, -103.0), (-17.0, -189.0), (-58.0, -233.0)],
-    #     [(-318.0, -161.0), (-248.0, -141.0), (-343.0, -60.0), (-280.0, 41.0),
-    #         (-171.0, 66.0), (-211.0, 79.0), (-295.0, 107.0), (-362.0, 135.0),
-    #         (-360.0, -244.0)],
-    #     [(-135.0, -236.0), (-242.0, -179.0), (-127.0, -136.0),
-    #         (-205.0, -139.0), (-248.0, -141.0),
-    #         (-318.0, -161.0), (-164.0, -268.0)],
-    #     [(-17.0, -189.0), (38.0, -103.0), (-135.0, -236.0), (-164.0, -268.0)]
-    # ]
-    #
-    # for poly in y_polys:
-    #     print(triangulate(poly))
-    tad.screen.mainloop()
-
+    pass
 
 
 if __name__ == '__main__':
