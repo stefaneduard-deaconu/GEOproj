@@ -82,40 +82,40 @@ def start(event):
     window_width, window_height = 0.618 * screen_width, 0.8 * screen_height
     tad.goto(window_width * 0.9 // 2, window_height * 0.9 // 2)
     #
-    quit()
-    from triangles import y_decompose
-    """
-    Function that given the border of a polygon, generates a decomposition
-        of it as y-monotone polygons.
-    """
-    from triangles import triangulate
-    """
-    Function that given a y-monotone polygon,
-        returns one of its triangulations, as a list of triangles.
-    """
-    y_polygons = y_decompose(polygon)
-    # triangles = []
-    # for poly in y_polygons:
-    #     triangles += triangulate(poly)
-
-    def draw_triangles():
-        pass
+    # quit()
+    # from triangles import y_decompose
+    # """
+    # Function that given the border of a polygon, generates a decomposition
+    #     of it as y-monotone polygons.
+    # """
+    # from triangles import triangulate
+    # """
+    # Function that given a y-monotone polygon,
+    #     returns one of its triangulations, as a list of triangles.
+    # """
+    # y_polygons = y_decompose(polygon)
+    # # triangles = []
+    # # for poly in y_polygons:
+    # #     triangles += triangulate(poly)
+    #
+    # def draw_triangles():
+    #     pass
 
 
 def exercise_1(event):
-    print('you presses button "1"')
+    print('you pressed button "1"')
 
 
 def exercise_2(event):
-    print('you presses button "2"')
+    print('you pressed button "2"')
 
 
 def exercise_3(event):
-    print('you presses button "3"')
+    print('you pressed button "3"')
 
 
 def exercise_4(event):
-    print('you presses button "4"')
+    print('you pressed button "4"')
 
 
 def reset_canvas(event):
