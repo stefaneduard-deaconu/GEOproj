@@ -3,4 +3,14 @@ The merge and split elements:
 * end - dwrt, uprt
 * split - uplt, dwlt
 * merge - uprt, dwrt
--- you could 
+-- you could
+
+
+
+
+
+
+
+IMP:
+* soon enough we'll move the testing in the main.py
+* by getting the triangles and all edges through the triangles.py functions and drawing inside main.py
